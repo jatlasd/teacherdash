@@ -41,10 +41,10 @@ function AddClass() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <button className=" bg-primary flex items-center justify-center px-4 py-2 text-white rounded hover:bg-primary-700 transition-all">
           <Plus className="mr-2 h-4 w-4" />
           Add Class
-        </Button>
+        </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
