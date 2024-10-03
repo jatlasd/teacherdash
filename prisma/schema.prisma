@@ -8,14 +8,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id          String  @id @default(uuid())
+  clerkUserId String  @unique
+  name        String
+  email       String  @default("example@example.com")
+  classes     Class[] @relation("UserToClass")
+}
+
 model Class {
-  id        String       @id @default(uuid())
-  name      String
-  students  Student[] @relation("ClassToStudent")
+  id       String    @id @default(uuid())
+  name     String
+  students Student[] @relation("ClassToStudent")
+  users    User[]    @relation("UserToClass")
+  ownerId  String    @default("nothing")// This will store the clerkUserId of the owner
 }
 
 model Student {
-  id        String       @id @default(uuid())
-  name      String
-  classes   Class[] @relation("ClassToStudent")
+  id      String  @id @default(uuid())
+  name    String
+  classes Class[] @relation("ClassToStudent")
 }

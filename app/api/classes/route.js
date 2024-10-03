@@ -1,18 +1,29 @@
-import { db } from "@/lib/db";
-import { NextResponse } from 'next/server';
 
-export async function GET() {
+import { db } from "@/lib/db";
+import { currentUser } from "@clerk/nextjs/server";
+
+export const GET = async ( request) => {
+  const user = await currentUser()
+  const  clerkUserId  = user.id
+
   try {
     const classes = await db.class.findMany({
-      include: {
-        students: true,
+      where: {
+        ownerId: clerkUserId,
       },
-    });
-
-    return NextResponse.json(classes);
+      include: {
+        students: true
+      }
+    })
+    return new Response(JSON.stringify(classes), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+  })
   } catch (error) {
     console.error('Error fetching classes:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return new Response(JSON.stringify({ error: 'Failed to fetch classes', details: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+    })
   }
 }
-

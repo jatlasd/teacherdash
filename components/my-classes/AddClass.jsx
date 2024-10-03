@@ -14,12 +14,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClass } from '@/app/actions/classActions'
 import { useRouter } from 'next/navigation'
+import { useToast } from "@/hooks/use-toast"
 
-function AddClass() {
+function AddClass({}) {
   const [open, setOpen] = useState(false)
   const [className, setClassName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -32,9 +34,16 @@ function AddClass() {
       setClassName('')
       setOpen(false)
       router.refresh() // Refresh the page to show the new class
+      toast({
+        title: "Class created",
+        description: "Your new class has been successfully created.",
+      })
     } else {
-      // Handle error (you might want to show an error message to the user)
-      console.error(result.error)
+      toast({
+        title: "Error",
+        description: result.error || "Failed to create class",
+        variant: "destructive",
+      })
     }
   }
 
@@ -60,7 +69,7 @@ function AddClass() {
               placeholder="Enter class name"
             />
           </div>
-          <Button type="submit" disabled={isLoading} className="w-full">
+          <Button type="submit" disabled={isLoading} className="w-full bg-primary rounded hover:bg-primary-700">
             {isLoading ? 'Creating...' : 'Create Class'}
           </Button>
         </form>

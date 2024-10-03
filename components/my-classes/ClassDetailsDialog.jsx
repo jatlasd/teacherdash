@@ -11,15 +11,17 @@ import { Button } from "@/components/ui/button"
 import { Pencil, Trash2, Save } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
+import { removeStudentFromClass } from "@/app/actions/classActions"
 
 const ClassDetailsDialog = ({
   cls,
   isOpen,
   onOpenChange,
   onEditStudent,
-  onDeleteStudent,
+  onRemoveStudent,
 }) => {
   const [editingStudent, setEditingStudent] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleEditStudent = (student) => {
     setEditingStudent(student)
@@ -30,8 +32,19 @@ const ClassDetailsDialog = ({
     setEditingStudent(null)
   }
 
-  const handleDeleteStudent = (studentId) => {
-    onDeleteStudent(studentId)
+  const handleRemoveStudent = async (studentId) => {
+    setIsDeleting(true)
+    const result = await removeStudentFromClass({ studentId, classId: cls.id })
+    setIsDeleting(false)
+    if (result.success) {
+      onRemoveStudent(studentId)
+      // Optionally, you can trigger a refetch of the entire class data here
+      // if you want to ensure complete synchronization with the backend
+      // onRefetchClass(cls.id)
+    } else {
+      console.error(result.error)
+      // You might want to show an error message to the user here
+    }
   }
 
   return (
@@ -73,9 +86,10 @@ const ClassDetailsDialog = ({
                     </Button>
                   )}
                   <Button
-                    onClick={() => handleDeleteStudent(student.id)}
+                    onClick={() => handleRemoveStudent(student.id)}
                     size="icon"
                     variant="destructive"
+                    disabled={isDeleting}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

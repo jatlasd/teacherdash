@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { MoreVertical, Edit, UserPlus, Trash2, Users, Eye } from 'lucide-react'
+import { useState } from 'react'
+import { MoreVertical, UserPlus, Trash2, Users, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,18 +18,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { addStudentToClass } from '@/app/actions/classActions'
-import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ClassDetailsDialog from './ClassDetailsDialog'
 
-function ClassItem({ cls }) {
+function ClassItem({ cls, onAddStudent, onEditStudent, onRemoveStudent, onDeleteClass }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false)
   const [studentName, setStudentName] = useState('')
-  const [classData, setClassData] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [isClassDetailsOpen, setIsClassDetailsOpen] = useState(false)
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleAddStudent = async (e) => {
     e.preventDefault()
@@ -41,56 +38,14 @@ function ClassItem({ cls }) {
     if (result.success) {
       setStudentName('')
       setIsAddStudentOpen(false)
-      fetchClassData()
+      onAddStudent(cls.id, result.data) // Pass the entire new student data
     } else {
       console.error(result.error)
     }
   }
 
-  const handleDeleteClass = () => {
-    console.log('Delete class:', cls.id)
-  }
-
-  const fetchClassData = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch(`/api/classes/${cls.id}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch class data')
-      }
-      const data = await response.json()
-      setClassData(data)
-    } catch (err) {
-      console.error('Error fetching class data:', err.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchClassData()
-  }, [cls.id])
-
-  if (isLoading) {
-    return <Card><CardContent>Loading...</CardContent></Card>
-  }
-
-  if (!classData) {
-    return <Card><CardContent>No data available</CardContent></Card>
-  }
-
-  const handleEditStudent = async (updatedStudent) => {
-    // Implement the logic to update the student in the backend
-    console.log('Edit student:', updatedStudent)
-    // After successful update, refresh the class data
-    await fetchClassData()
-  }
-
-  const handleDeleteStudent = async (studentId) => {
-    // Implement the logic to delete the student from the backend
-    console.log('Delete student:', studentId)
-    // After successful deletion, refresh the class data
-    await fetchClassData()
+  const handleRemoveStudent = (studentId) => {
+    onRemoveStudent(cls.id, studentId)
   }
 
   return (
@@ -113,7 +68,7 @@ function ClassItem({ cls }) {
               <UserPlus className="mr-2 h-4 w-4" />
               Add Student
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleDeleteClass}>
+            <DropdownMenuItem onClick={() => onDeleteClass(cls.id)}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete Class
             </DropdownMenuItem>
@@ -121,16 +76,16 @@ function ClassItem({ cls }) {
         </DropdownMenu>
       </CardHeader>
       <CardContent>
-        {classData.students.length === 0 ? (
+        {cls.students.length === 0 ? (
           <p className="text-xs text-muted-foreground">
             No students yet. Add your first student!
           </p>
         ) : (
           <>
-            <div className="text-2xl font-bold">{classData.students.length}</div>
+            <div className="text-2xl font-bold">{cls.students.length}</div>
             <p className="text-xs text-muted-foreground">
               <Users className="mr-1 h-4 w-4 inline" />
-              {classData.students.length === 1 ? 'Student' : 'Students'}
+              {cls.students.length === 1 ? 'Student' : 'Students'}
             </p>
           </>
         )}
@@ -151,7 +106,7 @@ function ClassItem({ cls }) {
                 placeholder="Enter student name"
               />
             </div>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="bg-primary rounded hover:bg-primary-700">
               {isLoading ? 'Adding...' : 'Add Student'}
             </Button>
           </form>
@@ -159,11 +114,11 @@ function ClassItem({ cls }) {
       </Dialog>
 
       <ClassDetailsDialog
-        cls={classData}
+        cls={cls}
         isOpen={isClassDetailsOpen}
         onOpenChange={setIsClassDetailsOpen}
-        onEditStudent={handleEditStudent}
-        onDeleteStudent={handleDeleteStudent}
+        onEditStudent={(updatedStudent) => onEditStudent(cls.id, updatedStudent)}
+        onRemoveStudent={handleRemoveStudent}
       />
     </Card>
   )

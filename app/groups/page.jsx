@@ -37,11 +37,14 @@ const Groups = () => {
   const handleClassSelect = (classId) => {
     setSelectedClass(classId)
     setActiveStep(2)
+    setGroups([]) // Clear the groups when a new class is selected
+    setGroupingMethod(null) // Reset the grouping method
   }
 
   const handleGroupingMethodSelect = (method) => {
     setGroupingMethod(method)
     setActiveStep(3)
+    setGroups([]) // Clear the groups when the grouping method changes
   }
 
   const generateGroups = () => {
