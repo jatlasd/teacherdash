@@ -13,38 +13,15 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import Header from './Header'
+
 
 const appCards = [
   { 
     id: 'group-maker', 
     title: 'Group Maker', 
     icon: <Users className="h-8 w-8" />, 
-    description: 'Create and manage student groups'
-  },
-  { 
-    id: 'lesson-planner', 
-    title: 'Lesson Planner', 
-    icon: <BookOpen className="h-8 w-8" />, 
-    description: 'Plan and organize your lessons'
-  },
-  { 
-    id: 'calendar', 
-    title: 'Calendar', 
-    icon: <Calendar className="h-8 w-8" />, 
-    description: 'Manage your schedule and events'
-  },
-  { 
-    id: 'gradebook', 
-    title: 'Gradebook', 
-    icon: <FileSpreadsheet className="h-8 w-8" />, 
-    description: 'Track and manage student grades'
-  },
-  { 
-    id: 'messaging', 
-    title: 'Messaging', 
-    icon: <MessageSquare className="h-8 w-8" />, 
-    description: 'Communicate with students and parents'
+    description: 'Create and manage student groups',
+    route: '/groups'
   },
 ]
 
@@ -84,10 +61,10 @@ function Dashboard() {
               <Card
                 key={app.id}
                 className="hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-                onClick={() => handleCardClick(app.id)}>
+                onClick={() => router.push(app.route)}>
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
-                    <div className="mr-4 text-[#73B830]">{app.icon}</div>
+                    <div className="mr-4 text-secondary">{app.icon}</div>
                     <h2 className="text-xl font-semibold text-[#4836A1]">{app.title}</h2>
                   </div>
                   <p className="text-gray-600">{app.description}</p>
