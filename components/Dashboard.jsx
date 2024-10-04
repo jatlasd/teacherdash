@@ -8,7 +8,8 @@ import {
   Calendar, 
   FileSpreadsheet, 
   MessageSquare, 
-  ChevronLeft
+  ChevronLeft,
+  Brain
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,13 @@ const appCards = [
     icon: <Users className="h-8 w-8" />, 
     description: 'Create and manage student groups',
     route: '/groups'
+  },
+  { 
+    id: 'debate-topic', 
+    title: 'Debate Topic Generator', 
+    icon: <Brain className="h-8 w-8" />, 
+    description: 'Generate a random topic for debate',
+    route: '/debate-topic'
   },
 ]
 
