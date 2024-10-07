@@ -9,7 +9,10 @@ import {
   FileSpreadsheet, 
   MessageSquare, 
   ChevronLeft,
-  Brain
+  Brain,
+  UserCheck,
+  Radical,
+  Calculator
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -25,11 +28,25 @@ const appCards = [
     route: '/groups'
   },
   { 
+    id: 'select-student', 
+    title: 'Random Student(s) Selector', 
+    icon: <UserCheck className="h-8 w-8" />, 
+    description: 'Select a student or students at random',
+    route: '/select-students'
+  },
+  { 
     id: 'debate-topic', 
     title: 'Debate Topic Generator', 
     icon: <Brain className="h-8 w-8" />, 
     description: 'Generate a random topic for debate',
     route: '/debate-topic'
+  },
+  { 
+    id: 'number-generator', 
+    title: 'Number Generator',  
+    icon: <Calculator className="h-8 w-8" />, 
+    description: 'An assortment of random number generators',
+    route: '/number-generator'
   },
 ]
 

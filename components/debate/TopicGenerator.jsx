@@ -41,7 +41,7 @@ const TopicGenerator = () => {
           </h1>
         ) : (
           <h1 className="w-full text-center font-semibold text-3xl text-primary">
-            Click "Generate" to begin your discussion!
+            Click the button to begin your discussion!
           </h1>
         )}
       </div>
