@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 
-function NumGenContainer() {
+function NumberGenerator() {
   const [numberSettings, setNumberSettings] = useState({
     min: '1',
     max: '100',
@@ -133,4 +133,4 @@ function NumGenContainer() {
   )
 }
 
-export default NumGenContainer
+export default NumberGenerator
