@@ -12,7 +12,8 @@ import {
   Brain,
   UserCheck,
   Radical,
-  Calculator
+  Calculator,
+  Clock
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -47,6 +48,13 @@ const appCards = [
     icon: <Calculator className="h-8 w-8" />, 
     description: 'An assortment of random number generators',
     route: '/number-generator'
+  },
+  { 
+    id: 'timer', 
+    title: 'Timer',  
+    icon: <Clock className="h-8 w-8" />, 
+    description: 'A simple timer',
+    route: '/timer'
   },
 ]
 
