@@ -133,8 +133,10 @@ const Groups = () => {
 
   return (
     <div className="container mx-auto p-6 flex flex-col space-y-6">
-      <h1 className="text-4xl font-bold text-primary mb-8">Group Maker</h1>
-
+      <div className="text-center">
+        <h1 className="text-4xl font-extrabold text-primary mb-4">Group Maker</h1>
+        <p className="text-lg text-gray-600">Create and manage groups for your class activities with ease</p>
+      </div>
       <div className="space-y-6">
         <Card>
           <CardContent className="p-6 flex items-start">
