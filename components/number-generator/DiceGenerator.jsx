@@ -26,7 +26,7 @@ const DiceGenerator = () => {
 
   return (
     <Card className="w-full max-w-md shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-lg">
+      <CardHeader className="!bg-secondary text-white rounded-t-lg">
         <CardTitle className="text-3xl font-bold text-center">Dice Roller</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 p-6">
@@ -36,12 +36,10 @@ const DiceGenerator = () => {
             return <DiceIcon key={index} className="w-24 h-24 text-primary" />
           })}
         </div>
-        <div className="text-center text-2xl font-bold text-primary">
-          Total: {dice.reduce((sum, value) => sum + value, 0)}
-        </div>
+
         <Button 
           onClick={rollDice} 
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3 rounded-lg transition-all hover:from-purple-700 hover:to-indigo-700"
+          className="w-full bg-secondary text-white font-bold py-3 rounded-lg transition-all hover:bg-secondary-600"
         >
           Roll Dice
         </Button>

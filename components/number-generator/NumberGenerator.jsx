@@ -47,7 +47,7 @@ function NumberGenerator() {
 
   return (
     <Card className='w-full max-w-3xl shadow-lg'>
-      <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-lg">
+      <CardHeader className="bg-secondary text-white rounded-t-lg">
         <CardTitle className='text-3xl font-bold text-center'>Random Number Generator</CardTitle>
       </CardHeader>
       <CardContent className='space-y-6 p-6'>
@@ -113,7 +113,7 @@ function NumberGenerator() {
         )}
       </CardContent>
       <CardFooter>
-        <Button onClick={generateNumbers} className='w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3 rounded-lg transition-all hover:from-purple-700 hover:to-indigo-700'>Generate Numbers</Button>
+        <Button onClick={generateNumbers} className='w-full bg-secondary text-white font-bold py-3 rounded-lg transition-all hover:bg-secondary-600'>Generate Numbers</Button>
       </CardFooter>
 
       {generatedNumbers.length > 0 && (
