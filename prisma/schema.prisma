@@ -14,6 +14,7 @@ model User {
   name        String
   email       String  @default("example@example.com")
   classes     Class[] @relation("UserToClass")
+  todos       Todo[]  @relation("TodoToUser")
 }
 
 model Class {
@@ -21,11 +22,19 @@ model Class {
   name     String
   students Student[] @relation("ClassToStudent")
   users    User[]    @relation("UserToClass")
-  ownerId  String    @default("nothing")// This will store the clerkUserId of the owner
+  ownerId  String    @default("nothing")
 }
 
 model Student {
   id      String  @id @default(uuid())
   name    String
   classes Class[] @relation("ClassToStudent")
+}
+
+model Todo {
+  id          String  @id @default(uuid())
+  todo        String
+  completed   Boolean @default(false)
+  clerkUserId String
+  user        User    @relation("TodoToUser", fields: [clerkUserId], references: [clerkUserId])
 }

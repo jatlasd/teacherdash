@@ -61,3 +61,26 @@ export async function removeStudentFromClass({ studentId, classId }) {
     return { success: false, error: error.message }
   }
 }
+
+export async function addTodo({todo}) {
+  const user = await checkUser();
+  const userId = user ? user.clerkUserId : null;
+  if (!userId) {
+    return { success: false, error: 'User not authenticated' }
+  }
+  try {
+    const newTodo = await db.todo.create({
+      data: {
+        todo: todo,
+        completed: false,
+        user: {
+          connect: { clerkUserId: userId }
+        }
+      }
+    })
+    return { success: true, data: newTodo }
+  } catch (error) {
+    console.error('Failed to add todo:', error)
+    return { success: false, error: error.message }
+  }
+}
