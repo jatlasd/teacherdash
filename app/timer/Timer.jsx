@@ -30,12 +30,19 @@ export default function Timer() {
   }
 
   const startTimer = useCallback(() => {
+    if (isRunning) return // Prevent starting if already running
+
     const minutes = parseInt(inputMinutes, 10) || 0
     const seconds = parseInt(inputSeconds, 10) || 0
     const totalSeconds = minutes * 60 + seconds
-    if (totalSeconds > 0) {
-      setTime(totalSeconds)
-      setTotalTime(totalSeconds)
+
+    if (totalSeconds > 0 || time > 0) { // Allow resuming with existing time
+      if (totalSeconds > 0) {
+        // Add 1 second to the initial time
+        const adjustedTime = totalSeconds + 1
+        setTime(adjustedTime)
+        setTotalTime(adjustedTime)
+      }
       setIsRunning(true)
       stopSound()
       setInputMinutes('')
@@ -43,7 +50,7 @@ export default function Timer() {
       startTimeRef.current = Date.now()
       animationRef.current = requestAnimationFrame(updateTimer)
     }
-  }, [inputMinutes, inputSeconds])
+  }, [inputMinutes, inputSeconds, isRunning, time, totalTime])
 
   const pauseTimer = () => {
     setIsRunning(false)
@@ -106,25 +113,40 @@ export default function Timer() {
   const progress = totalTime > 0 ? time / totalTime : 1
   const strokeDashoffset = circumference * (1 - progress)
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      startTimer()
+    }
+  }
+
   return (
     <div className="space-y-4 flex flex-col items-center">
-      <div className="flex items-center space-x-2">
-        <Input
-          type="text"
-          placeholder="Minutes"
-          value={inputMinutes}
-          onChange={(e) => setInputMinutes(e.target.value)}
-          className="w-24"
-        />
-        <Input
-          type="text"
-          placeholder="Seconds"
-          value={inputSeconds}
-          onChange={(e) => setInputSeconds(e.target.value)}
-          className="w-24"
-        />
-        <Button onClick={startTimer} disabled={isRunning}>Start</Button>
-      </div>
+      {!isRunning && time === 0 && (
+        <div className="flex items-center space-x-2">
+          <Input
+            type="text"
+            placeholder="Minutes"
+            value={inputMinutes}
+            onChange={(e) => setInputMinutes(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="w-24"
+          />
+          <Input
+            type="text"
+            placeholder="Seconds"
+            value={inputSeconds}
+            onChange={(e) => setInputSeconds(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="w-24"
+          />
+          <Button 
+            onClick={startTimer}
+            className="bg-primary hover:bg-primary-700 transition-colors"
+          >
+            Start
+          </Button>
+        </div>
+      )}
       <div className="relative">
         <svg width="250" height="250" viewBox="0 0 250 250">
           <circle
@@ -132,7 +154,7 @@ export default function Timer() {
             cy="125"
             r={radius}
             fill="#f3f4f6"
-            stroke="#d1d5db"
+            stroke={!isRunning && time > 0 ? "#e5e7eb" : "#d1d5db"}
             strokeWidth="8"
           />
           <circle
@@ -140,7 +162,7 @@ export default function Timer() {
             cy="125"
             r={radius}
             fill="none"
-            stroke="#4836A1"
+            stroke={!isRunning && time > 0 ? "#9CA3AF" : "#4836A1"}
             strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -148,15 +170,40 @@ export default function Timer() {
             transform="rotate(-90 125 125)"
           />
         </svg>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold">
-          {formatTime(time)}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+          <div className={`text-4xl font-bold text-primary ${!isRunning && time > 0 ? 'text-gray-500' : ''}`}>
+            {formatTime(time)}
+          </div>
+          {!isRunning && time > 0 && (
+            <div className="text-lg font-semibold text-yellow-500 mt-2">
+              PAUSED
+            </div>
+          )}
         </div>
       </div>
       <div className="space-x-2">
-        <Button onClick={pauseTimer} disabled={!isRunning}>Pause</Button>
-        <Button onClick={stopTimer} disabled={!isRunning && time === 0}>Stop</Button>
-        <Button onClick={resetTimer} disabled={!inputMinutes && !inputSeconds && time === 0}>Reset</Button>
-        {isSoundPlaying && <Button onClick={stopSound}>Stop Sound</Button>}
+        {isRunning ? (
+          <Button onClick={pauseTimer} className="bg-primary hover:bg-primary-700 transition-colors">
+            Pause
+          </Button>
+        ) : time > 0 ? (
+          <Button onClick={startTimer} className="bg-primary hover:bg-primary-700 transition-colors">
+            Resume
+          </Button>
+        ) : null}
+        {(isRunning || time > 0) && (
+          <Button 
+            onClick={stopTimer} 
+            className="bg-secondary hover:bg-secondary-700 transition-colors"
+          >
+            Stop
+          </Button>
+        )}
+        {isSoundPlaying && (
+          <Button onClick={stopSound} className="bg-primary hover:bg-primary-700 transition-colors">
+            Stop Sound
+          </Button>
+        )}
       </div>
     </div>
   )
