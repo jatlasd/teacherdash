@@ -57,7 +57,7 @@ function Dashboard() {
               Have a suggestion or request? Encounter a bug or something not
               working as it should?
             </h1>
-            <Link href="/feedback" className="text-blue-600 hover:text-blue-800 hover:underline font-semibold text-lg mt-1">Fill out the feedback form</Link>
+            <Link href="/feedback" className="text-blue-600 hover:text-blue-800 hover:underline font-semibold text-lg mt-1">Click here to fill out the feedback form</Link>
           </div>
         </div>
         <div className="flex">
