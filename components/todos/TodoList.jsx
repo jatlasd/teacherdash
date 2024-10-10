@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { addTodo } from "@/app/actions/classActions";
+import { addTodo } from "@/app/actions/todoActions";
+import TodoItem from "./TodoItem";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
@@ -36,6 +37,14 @@ const TodoList = () => {
     }
   };
 
+  const handleTodoUpdate = (updatedTodo) => {
+    setTodos(todos.map(todo => todo.id === updatedTodo.id ? updatedTodo : todo))
+  }
+
+  const handleTodoDelete = (todoId) => {
+    setTodos(todos.filter(todo => todo.id !== todoId))
+  }
+
   return (
     <div>
       <input
@@ -46,7 +55,12 @@ const TodoList = () => {
       <button onClick={handleAddTodo}>Add Todo</button>
       <ul>
         {todos.map((todo) => (
-          <li key={todo.id}>{todo.todo}</li>
+          <TodoItem 
+            key={todo.id} 
+            todo={todo} 
+            onUpdate={handleTodoUpdate}
+            onDelete={handleTodoDelete}
+          />
         ))}
       </ul>
     </div>
