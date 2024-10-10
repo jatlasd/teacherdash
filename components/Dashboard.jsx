@@ -5,6 +5,7 @@ import { Users, Brain, UserCheck, Calculator, Clock } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import TodoList from "./todos/TodoList";
+import Link from "next/link";
 
 const appCards = [
   {
@@ -50,6 +51,15 @@ function Dashboard() {
   return (
     <div className="min-h-screen">
       <main className="container mx-auto p-4">
+        <div className="w-full flex justify-center">
+          <div className="w-2/3 flex flex-col items-center border rounded-xl px-2 py-4 shadow">
+            <h1 className="text-2xl text-primary font-semibold">
+              Have a suggestion or request? Encounter a bug or something not
+              working as it should?
+            </h1>
+            <Link href="/feedback" className="text-blue-600 hover:text-blue-800 hover:underline font-semibold text-lg mt-1">Fill out the feedback form</Link>
+          </div>
+        </div>
         <div className="flex">
           <div className="mt-8 w-1/5 mr-4">
             <TodoList />
