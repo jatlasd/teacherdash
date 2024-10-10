@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { shuffle } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const Groups = () => {
   const [classes, setClasses] = useState([]);
@@ -14,6 +15,8 @@ const Groups = () => {
   const [groups, setGroups] = useState([]);
   const [activeStep, setActiveStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [groupingType, setGroupingType] = useState('studentsPerGroup')
+  const [groupCount, setGroupCount] = useState('')
 
   const fetchClasses = async () => {
     setIsLoading(true);
@@ -60,35 +63,45 @@ const Groups = () => {
   };
 
   const handleGroupingMethodSelect = (method) => {
-    setGroupingMethod(method);
-    setActiveStep(4);
-    setGroups([]);
-  };
+    setGroupingMethod(method)
+    setActiveStep(4)
+    setGroups([])
+  }
 
   const generateGroups = () => {
-    if (!selectedClass || !groupingMethod) return;
+    if (!selectedClass || !groupingMethod) return
 
     const presentStudents = selectedClass.students.filter(
       (student) => !absentStudents.has(student.id)
-    );
-    const shuffledStudents = shuffle(presentStudents);
-    const groupSize =
-      groupingMethod === "partners" ? 2 : groupingMethod === "threes" ? 3 : 4;
-    const newGroups = [];
+    )
+    const shuffledStudents = shuffle(presentStudents)
+    let newGroups = []
 
-    while (shuffledStudents.length > 0) {
-      const group = shuffledStudents.splice(0, groupSize);
-      newGroups.push(group);
+    if (groupingType === 'studentsPerGroup') {
+      const groupSize = parseInt(groupingMethod, 10)
+      while (shuffledStudents.length > 0) {
+        const group = shuffledStudents.splice(0, groupSize)
+        newGroups.push(group)
+      }
+    } else {
+      // Ensure groupCount is not empty before proceeding
+      if (!groupCount) return
+      const numberOfGroups = parseInt(groupCount, 10)
+      const groupSize = Math.ceil(shuffledStudents.length / numberOfGroups)
+      for (let i = 0; i < numberOfGroups; i++) {
+        newGroups.push(shuffledStudents.splice(0, groupSize))
+      }
     }
 
+    // Distribute any remaining students
     if (shuffledStudents.length > 0) {
       shuffledStudents.forEach((student, index) => {
-        newGroups[index % newGroups.length].push(student);
-      });
+        newGroups[index % newGroups.length].push(student)
+      })
     }
 
-    setGroups(newGroups);
-  };
+    setGroups(newGroups)
+  }
 
   const shuffleGroups = () => {
     const allStudents = groups.flat();
@@ -203,6 +216,7 @@ const Groups = () => {
                           onCheckedChange={() =>
                             handleStudentAbsence(student.id)
                           }
+                          className="data-[state=checked]:bg-primary"
                         />
                         <label
                           htmlFor={`student-${student.id}`}
@@ -239,24 +253,74 @@ const Groups = () => {
               <h2 className="text-2xl font-semibold mb-4">
                 Select Grouping Method
               </h2>
-              <div className="flex flex-wrap gap-4">
-                {["partners", "threes", "fours"].map((method) => (
-                  <Button
-                    key={method}
-                    onClick={() => handleGroupingMethodSelect(method)}
-                    variant="outline"
-                    disabled={!selectedClass}
-                    className={`h-auto py-2 ${
-                      groupingMethod === method
-                        ? "bg-primary-100 text-primary-600 border-primary-300"
-                        : "hover:bg-gray-100"
-                    }`}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <label className="text-sm font-medium text-gray-700 w-32">
+                    Grouping Type:
+                  </label>
+                  <Select
+                    value={groupingType}
+                    onValueChange={(value) => setGroupingType(value)}
                   >
-                    {method === "partners"
-                      ? "Partners"
-                      : `Groups of ${method === "threes" ? "3" : "4"}`}
-                  </Button>
-                ))}
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="studentsPerGroup">Students per Group</SelectItem>
+                      <SelectItem value="numberOfGroups">Number of Groups</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {groupingType === 'studentsPerGroup' ? (
+                  <div className="flex items-center space-x-4">
+                    <label className="text-sm font-medium text-gray-700 w-32">
+                      Students per Group:
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {["2", "3", "4"].map((method) => (
+                        <Button
+                          key={method}
+                          onClick={() => handleGroupingMethodSelect(method)}
+                          variant="outline"
+                          size="sm"
+                          disabled={!selectedClass}
+                          className={`${
+                            groupingMethod === method
+                              ? "bg-primary-100 text-primary-600 border-primary-300"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          {method === "2" ? "Partners" : `Groups of ${method}`}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-4">
+                    <label className="text-sm font-medium text-gray-700 w-32">
+                      Number of Groups:
+                    </label>
+                    <Select
+                      value={groupCount}
+                      onValueChange={(value) => {
+                        setGroupCount(value)
+                        handleGroupingMethodSelect(value)
+                      }}
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select count" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[2, 3, 4, 5, 6].map((count) => (
+                          <SelectItem key={count} value={count.toString()}>
+                            {count} Groups
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -276,7 +340,7 @@ const Groups = () => {
               <div className="flex space-x-4">
                 <Button
                   onClick={generateGroups}
-                  disabled={!groupingMethod || !selectedClass}
+                  disabled={!groupingMethod || !selectedClass || (groupingType === 'numberOfGroups' && !groupCount)}
                   variant="outline"
                 >
                   Generate Groups
