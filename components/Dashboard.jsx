@@ -52,7 +52,7 @@ function Dashboard() {
     <div className="min-h-screen">
       <main className="container mx-auto p-4">
         <div className="w-full flex justify-center">
-          <div className="w-2/3 flex flex-col items-center border rounded-xl px-2 py-4 shadow">
+          <div className="w-2/3 flex flex-col items-center border rounded-xl px-2 py-4 shadow text-center">
             <h1 className="text-2xl text-primary font-semibold">
               Have a suggestion or request? Encounter a bug or something not
               working as it should?

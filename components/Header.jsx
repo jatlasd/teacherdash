@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 function Header() {
   const router = useRouter();
@@ -25,20 +26,7 @@ function Header() {
         </h1>
         <div className="flex gap-x-5">
           <SignedIn>
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Settings className="h-6 w-6 text-light" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => router.push("/my-classes")}>
-                  My Classes
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/logout")}>
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Link href="/my-classes" className="text-white transition-colors p-2 hover:bg-white/10 rounded">My Classes</Link>
             <UserButton />
           </SignedIn>
         </div>
