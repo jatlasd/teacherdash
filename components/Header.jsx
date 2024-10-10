@@ -41,9 +41,6 @@ function Header() {
             </DropdownMenu>
             <UserButton />
           </SignedIn>
-          <SignedOut>
-            <SignInButton mode="modal"/>
-          </SignedOut>
         </div>
       </div>
     </header>
