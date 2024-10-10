@@ -64,7 +64,7 @@ const TodoList = () => {
   };
 
   return (
-    <div className="mr-3 border-2 border-primary-300/50  rounded-xl p-3 flex flex-col">
+    <div className="mr-3 border-2  rounded-xl p-3 flex flex-col">
       <div className="flex justify-between items-center mb-2 relative">
         <div className="absolute right-0">
           <button
