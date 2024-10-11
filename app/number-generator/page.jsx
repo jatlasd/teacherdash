@@ -10,6 +10,7 @@ import FractionGenerator from "@/components/number-generator/FractionGenerator";
 
 const NumberGeneratorPage = () => {
   const [genType, setGenType] = useState(null);
+  const [isTypeSelected, setIsTypeSelected] = useState(false);
 
   const generatorTypes = [
     {
@@ -31,7 +32,12 @@ const NumberGeneratorPage = () => {
       description: 'Generate random fractions with customizable numerator and denominator ranges.',
       icon: <Divide />,
     },
-  ]
+  ];
+
+  const handleTypeClick = (type) => {
+    setIsTypeSelected(true);
+    setGenType(type.id);
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -44,30 +50,34 @@ const NumberGeneratorPage = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 transition-all duration-500 ease-in-out ${isTypeSelected ? 'max-w-3xl mx-auto' : ''}`}>
         {generatorTypes.map((type) => (
-          <Card key={type.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <Button
-                className={`w-full h-full flex flex-col items-center justify-center space-y-4 p-6 border-none shadow-none rounded ${
-                  genType === type.id
-                    ? "bg-primary-300 text-white hover:bg-primary-300"
-                    : "bg-white text-primary hover:bg-primary-200"
+          <div key={type.id} className={`transition-all duration-500 ease-in-out ${isTypeSelected ? 'w-full' : ''}`}>
+            <Button
+              className={`w-full h-full flex flex-col items-center justify-center space-y-4 p-6 border-none shadow-none rounded 
+                transition-all duration-500 ease-in-out
+                hover:transition-colors hover:duration-200
+                ${isTypeSelected 
+                  ? 'h-24 space-y-2 p-2' 
+                  : 'hover:shadow-lg'
+                }
+                ${genType === type.id
+                  ? "bg-primary-300 text-white hover:bg-primary-300"
+                  : "bg-white text-primary hover:bg-primary-200 border-2 border-primary-200/50"
                 }`}
-                onClick={() => setGenType(type.id)}
-              >
-                {type.icon}
-                <h3 className="text-xl font-semibold">{type.title}</h3>
-                <p
-                  className={`text-sm text-gray-600 text-center text-wrap ${
-                    genType === type.id ? "text-white" : "text-gray-600"
-                  }`}
-                >
+              onClick={() => handleTypeClick(type)}
+            >
+              {type.icon}
+              <p className={`text-sm transition-all duration-500 ease-in-out ${isTypeSelected ? 'text-xs' : 'text-xl font-semibold'}`}>
+                {type.title}
+              </p>
+              {!isTypeSelected && (
+                <p className={`text-sm text-gray-600 text-center text-wrap transition-opacity duration-500 ease-in-out ${isTypeSelected ? 'opacity-0' : 'opacity-100'}`}>
                   {type.description}
                 </p>
-              </Button>
-            </CardContent>
-          </Card>
+              )}
+            </Button>
+          </div>
         ))}
       </div>
 
