@@ -144,7 +144,9 @@ function ClassItem({
           </p>
         ) : (
           <>
-            <div className="text-2xl font-bold text-primary">{cls.students.length}</div>
+            <div className="text-2xl font-bold text-primary">
+              {cls.students.length}
+            </div>
             <p className="text-xs text-muted-foreground">
               <Users className="mr-1 h-4 w-4 inline" />
               {cls.students.length === 1 ? "Student" : "Students"}

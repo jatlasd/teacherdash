@@ -113,7 +113,7 @@ function SelectStudents() {
                 <h2 className="text-2xl font-semibold text-gray-700 mb-2">Selected Students:</h2>
                 {selectedStudents.map((student, index) => (
                   <p key={student.id} className="text-3xl font-bold text-secondary mb-2">
-                    {index + 1}. {student.name}
+                    {student.name}
                   </p>
                 ))}
               </div>
