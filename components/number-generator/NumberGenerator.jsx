@@ -95,6 +95,7 @@ function NumberGenerator() {
             name='includeDecimals'
             checked={numberSettings.includeDecimals}
             onCheckedChange={(checked) => handleInputChange({ target: { name: 'includeDecimals', type: 'checkbox', checked } })}
+            className="data-[state=checked]:bg-primary"
           />
         </div>
 
