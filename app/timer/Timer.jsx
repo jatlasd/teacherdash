@@ -171,7 +171,7 @@ export default function Timer() {
           />
         </svg>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-          <div className={`text-4xl font-bold text-primary ${!isRunning && time > 0 ? 'text-gray-500' : ''}`}>
+          <div className={`text-4xl font-bold  ${!isRunning && time > 0 ? 'text-gray-500' : 'text-primary'}`}>
             {formatTime(time)}
           </div>
           {!isRunning && time > 0 && (

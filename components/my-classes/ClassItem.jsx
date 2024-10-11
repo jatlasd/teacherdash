@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { MoreVertical, UserPlus, Trash2, Users, Eye } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { MoreVertical, UserPlus, Trash2, Users, Eye, Plus, Minus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -10,37 +10,78 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { addStudentToClass } from '@/app/actions/classActions'
+import { addMultipleStudentsToClass } from '@/app/actions/classActions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ClassDetailsDialog from './ClassDetailsDialog'
+import { useToast } from "@/hooks/use-toast"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 function ClassItem({ cls, onAddStudent, onEditStudent, onRemoveStudent, onDeleteClass }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false)
-  const [studentName, setStudentName] = useState('')
   const [isClassDetailsOpen, setIsClassDetailsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [studentInputs, setStudentInputs] = useState([{ name: '' }])
+  const inputRefs = useRef([])
+  const { toast } = useToast()
 
-  const handleAddStudent = async (e) => {
+  const handleAddStudentInput = () => {
+    setStudentInputs([...studentInputs, { name: '' }])
+  }
+
+  useEffect(() => {
+    const lastIndex = studentInputs.length - 1
+    if (inputRefs.current[lastIndex]) {
+      inputRefs.current[lastIndex].focus()
+    }
+  }, [studentInputs.length])
+
+  const handleRemoveStudentInput = (index) => {
+    const newInputs = studentInputs.filter((_, i) => i !== index)
+    setStudentInputs(newInputs)
+  }
+
+  const handleStudentNameChange = (index, value) => {
+    const newInputs = [...studentInputs]
+    newInputs[index].name = value
+    setStudentInputs(newInputs)
+  }
+
+  const handleAddStudents = async (e) => {
     e.preventDefault()
     setIsLoading(true)
     
-    const result = await addStudentToClass({ classId: cls.id, name: studentName })
+    const names = studentInputs.map(input => input.name.trim()).filter(name => name !== '')
     
-    setIsLoading(false)
-    if (result.success) {
-      setStudentName('')
-      setIsAddStudentOpen(false)
-      onAddStudent(cls.id, result.data) // Pass the entire new student data
-    } else {
-      console.error(result.error)
+    try {
+      const result = await addMultipleStudentsToClass({ classId: cls.id, names })
+
+      if (result.success) {
+        onAddStudent(cls.id, result.data)
+        setStudentInputs([{ name: '' }])
+        setIsAddStudentOpen(false)
+        toast({
+          title: "Students added",
+          description: `Successfully added ${result.data.length} student(s) to the class.`,
+        })
+      } else {
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      console.error('Error adding students:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add students",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -92,22 +133,45 @@ function ClassItem({ cls, onAddStudent, onEditStudent, onRemoveStudent, onDelete
       </CardContent>
       
       <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Add New Student to {cls.name}</DialogTitle>
+            <DialogTitle>Add New Student(s) to {cls.name}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAddStudent} className="space-y-4">
-            <div>
-              <Label htmlFor="studentName">Student Name</Label>
-              <Input
-                id="studentName"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                placeholder="Enter student name"
-              />
-            </div>
-            <Button type="submit" disabled={isLoading} className="bg-primary rounded hover:bg-primary-700">
-              {isLoading ? 'Adding...' : 'Add Student'}
+          <form onSubmit={handleAddStudents} className="flex flex-col flex-grow">
+            <ScrollArea className="flex-grow pr-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {Array.from({ length: Math.ceil(studentInputs.length / 7) }).map((_, colIndex) => (
+                  <div key={colIndex} className="space-y-4">
+                    {studentInputs.slice(colIndex * 7, (colIndex + 1) * 7).map((input, index) => {
+                      const actualIndex = colIndex * 7 + index;
+                      const isLastInput = actualIndex === studentInputs.length - 1;
+                      return (
+                        <div key={actualIndex} className="flex items-center space-x-2">
+                          <Input
+                            ref={el => inputRefs.current[actualIndex] = el}
+                            value={input.name}
+                            onChange={(e) => handleStudentNameChange(actualIndex, e.target.value)}
+                            placeholder={`Student ${actualIndex + 1} name`}
+                            className="mx-1 my-px"
+                          />
+                          {isLastInput ? (
+                            <Button type="button" size="icon" onClick={handleAddStudentInput}>
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button type="button" size="icon" variant="destructive" onClick={() => handleRemoveStudentInput(actualIndex)}>
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+            <Button type="submit" disabled={isLoading} className="w-full bg-primary rounded hover:bg-primary-700">
+              {isLoading ? 'Adding...' : 'Add Student(s)'}
             </Button>
           </form>
         </DialogContent>

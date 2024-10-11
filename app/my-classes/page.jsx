@@ -1,15 +1,16 @@
 "use client"
 
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useCallback} from 'react'
 import AddClass from '@/components/my-classes/AddClass'
 import ClassItem from '@/components/my-classes/ClassItem'
-// import { db } from '@/lib/db'
+import { deleteClass } from '@/app/actions/classActions'
+import { useToast } from "@/hooks/use-toast"
 
 const MyClasses = () => {
   const [classes, setClasses] = useState([])
-  // const classes = await db.class.findMany()
+  const { toast } = useToast()
   
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     try {
       const response = await fetch('/api/classes')
       if(!response.ok) {
@@ -20,17 +21,17 @@ const MyClasses = () => {
     } catch (error) {
       console.error('Error fetching classes:', error)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchClasses()
-  }, [])
+  }, [fetchClasses])
 
-  const handleAddStudent = (classId, newStudent) => {
+  const handleAddStudent = (classId, newStudents) => {
     setClasses(prevClasses => 
       prevClasses.map(cls => 
         cls.id === classId 
-          ? { ...cls, students: [...cls.students, newStudent] }
+          ? { ...cls, students: [...cls.students, ...newStudents] }
           : cls
       )
     )
@@ -62,9 +63,30 @@ const MyClasses = () => {
   }
 
   const handleDeleteClass = async (classId) => {
-    // Implement the API call to delete the class
-    // Then update the state
-    setClasses(prevClasses => prevClasses.filter(cls => cls.id !== classId))
+    try {
+      const classToDelete = classes.find(cls => cls.id === classId)
+      if (!classToDelete) {
+        throw new Error("Class not found")
+      }
+
+      const result = await deleteClass(classId)
+      if (result.success) {
+        setClasses(prevClasses => prevClasses.filter(cls => cls.id !== classId))
+        toast({
+          title: "Class deleted",
+          description: `The class "${classToDelete.name}" has been successfully deleted.`,
+        })
+      } else {
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      console.error('Error deleting class:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete class",
+        variant: "destructive",
+      })
+    }
   }
 
   return (

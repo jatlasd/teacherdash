@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 
 function SelectStudents() {
   const [classes, setClasses] = useState([])
   const [selectedClass, setSelectedClass] = useState(null)
   const [students, setStudents] = useState(null)
-  const [selectedStudent, setSelectedStudent] = useState(null)
+  const [selectedStudents, setSelectedStudents] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [numberOfStudents, setNumberOfStudents] = useState('1')
 
   const fetchClasses = async () => {
     setIsLoading(true)
@@ -35,18 +37,19 @@ function SelectStudents() {
   const handleSelectClass = (cls) => {
     setSelectedClass(cls)
     setStudents(cls.students)
-    setSelectedStudent(null)
+    setSelectedStudents([])
   }
 
-  const handleSelectRandomStudent = () => {
+  const handleSelectRandomStudents = () => {
     if (!students || students.length === 0) return
 
     setIsLoading(true)
     try {
-      const randomIndex = Math.floor(Math.random() * students.length)
-      setSelectedStudent(students[randomIndex])
+      const numStudents = Math.min(parseInt(numberOfStudents, 10) || 1, students.length)
+      const shuffled = [...students].sort(() => 0.5 - Math.random())
+      setSelectedStudents(shuffled.slice(0, numStudents))
     } catch (error) {
-      console.error('Error selecting random student:', error)
+      console.error('Error selecting random students:', error)
     } finally {
       setIsLoading(false)
     }
@@ -82,24 +85,37 @@ function SelectStudents() {
       {selectedClass && (
         <Card className="shadow-lg">
           <CardContent className="space-y-4 flex flex-col items-center">
-            <Button
-              onClick={handleSelectRandomStudent}
-              disabled={isLoading || !students || students.length === 0}
-              className="py-3 text-lg rounded hover:bg-primary-700 bg-primary w-1/3 mt-5"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Selecting...
-                </>
-              ) : (
-                'Select Random Student'
-              )}
-            </Button>
-            {selectedStudent && (
+            <div className="flex flex-col items-center space-y-4 w-full justify-center mt-5">
+              <Input
+                type="text"
+                value={numberOfStudents}
+                onChange={(e) => setNumberOfStudents(e.target.value)}
+                placeholder="Number of students"
+                className="w-40 text-center"
+              />
+              <Button
+                onClick={handleSelectRandomStudents}
+                disabled={isLoading || !students || students.length === 0}
+                className="py-3 text-lg rounded hover:bg-primary-700 bg-primary"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Selecting...
+                  </>
+                ) : (
+                  'Select Random Students'
+                )}
+              </Button>
+            </div>
+            {selectedStudents.length > 0 && (
               <div className="text-center">
-                <h2 className="text-2xl font-semibold text-gray-700 mb-2">Selected Student:</h2>
-                <p className="text-5xl font-bold text-secondary">{selectedStudent.name}</p>
+                <h2 className="text-2xl font-semibold text-gray-700 mb-2">Selected Students:</h2>
+                {selectedStudents.map((student, index) => (
+                  <p key={student.id} className="text-3xl font-bold text-secondary mb-2">
+                    {index + 1}. {student.name}
+                  </p>
+                ))}
               </div>
             )}
           </CardContent>

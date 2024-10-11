@@ -16,7 +16,7 @@ import { createClass } from '@/app/actions/classActions'
 import { useRouter } from 'next/navigation'
 import { useToast } from "@/hooks/use-toast"
 
-function AddClass({}) {
+function AddClass({ onClassAdded }) {
   const [open, setOpen] = useState(false)
   const [className, setClassName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -33,7 +33,7 @@ function AddClass({}) {
     if (result.success) {
       setClassName('')
       setOpen(false)
-      router.refresh() // Refresh the page to show the new class
+      onClassAdded() // Call this function to fetch updated classes
       toast({
         title: "Class created",
         description: "Your new class has been successfully created.",
