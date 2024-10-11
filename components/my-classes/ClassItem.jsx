@@ -9,6 +9,7 @@ import {
   Eye,
   Plus,
   Minus,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ClassDetailsDialog from "./ClassDetailsDialog";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import UploadStudentList from './UploadStudentList'
 
 function ClassItem({
   cls,
@@ -44,6 +46,8 @@ function ClassItem({
   const [studentInputs, setStudentInputs] = useState([{ name: "" }]);
   const inputRefs = useRef([]);
   const { toast } = useToast();
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState(false)
+  const [previewStudents, setPreviewStudents] = useState([])
 
   const handleAddStudentInput = () => {
     setStudentInputs([...studentInputs, { name: "" }]);
@@ -67,6 +71,12 @@ function ClassItem({
     setStudentInputs(newInputs);
   };
 
+  const handlePreviewStudents = (names) => {
+    setPreviewStudents(names.map(name => ({ name })))
+    setStudentInputs(names.map(name => ({ name })))
+    setIsAddStudentOpen(true)
+  }
+
   const handleAddStudents = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -84,6 +94,7 @@ function ClassItem({
       if (result.success) {
         onAddStudent(cls.id, result.data);
         setStudentInputs([{ name: "" }]);
+        setPreviewStudents([])
         setIsAddStudentOpen(false);
         toast({
           title: "Students added",
@@ -130,6 +141,10 @@ function ClassItem({
               <UserPlus className="mr-2 h-4 w-4" />
               Add Student
             </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setIsFileUploadOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Student List
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDeleteClass(cls.id)}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete Class
@@ -158,7 +173,9 @@ function ClassItem({
       <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Add New Student(s) to {cls.name}</DialogTitle>
+            <DialogTitle>
+              {previewStudents.length > 0 ? 'Preview and Edit Students' : `Add New Student(s) to ${cls.name}`}
+            </DialogTitle>
           </DialogHeader>
           <form
             onSubmit={handleAddStudents}
@@ -211,6 +228,7 @@ function ClassItem({
                                 onClick={() =>
                                   handleRemoveStudentInput(actualIndex)
                                 }
+                                className="bg-secondary hover:bg-secondary-600"
                               >
                                 <Minus className="h-4 w-4" />
                               </Button>
@@ -232,6 +250,13 @@ function ClassItem({
           </form>
         </DialogContent>
       </Dialog>
+
+      <UploadStudentList
+        classId={cls.id}
+        onPreviewStudents={handlePreviewStudents}
+        isOpen={isFileUploadOpen}
+        onOpenChange={setIsFileUploadOpen}
+      />
 
       <ClassDetailsDialog
         cls={cls}
