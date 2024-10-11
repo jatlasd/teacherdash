@@ -69,7 +69,7 @@ const ClassDetailsDialog = ({
                     className="mb-2"
                   />
                 ) : (
-                  <p className="font-medium text-lg mb-2 truncate">{student.name}</p>
+                  <p className="font-medium text-lg mb-2 truncate text-primary">{student.name}</p>
                 )}
                 <div className="flex justify-end space-x-2">
                   {editingStudent && editingStudent.id === student.id ? (
@@ -88,7 +88,7 @@ const ClassDetailsDialog = ({
                   <Button
                     onClick={() => handleRemoveStudent(student.id)}
                     size="icon"
-                    variant="destructive"
+                    className="bg-secondary hover:bg-secondary-600"
                     disabled={isDeleting}
                   >
                     <Trash2 className="h-4 w-4" />
