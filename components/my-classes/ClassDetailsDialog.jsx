@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/dialog"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2, Save } from "lucide-react"
+import { Pencil, Trash2, Save, UserPlus, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { removeStudentFromClass } from "@/app/actions/classActions"
+import { removeStudentFromClass, addStudentToClass } from "@/app/actions/classActions"
 
 const ClassDetailsDialog = ({
   cls,
@@ -19,9 +19,13 @@ const ClassDetailsDialog = ({
   onOpenChange,
   onEditStudent,
   onRemoveStudent,
+  onAddStudent,
 }) => {
   const [editingStudent, setEditingStudent] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [newStudentName, setNewStudentName] = useState("")
+  const [isAddingStudent, setIsAddingStudent] = useState(false)
+  const [showAddStudentInput, setShowAddStudentInput] = useState(false)
 
   const handleEditStudent = (student) => {
     setEditingStudent(student)
@@ -38,20 +42,30 @@ const ClassDetailsDialog = ({
     setIsDeleting(false)
     if (result.success) {
       onRemoveStudent(studentId)
-      // Optionally, you can trigger a refetch of the entire class data here
-      // if you want to ensure complete synchronization with the backend
-      // onRefetchClass(cls.id)
     } else {
       console.error(result.error)
-      // You might want to show an error message to the user here
+    }
+  }
+
+  const handleAddStudent = async () => {
+    if (!newStudentName.trim()) return
+    setIsAddingStudent(true)
+    const result = await addStudentToClass({ name: newStudentName, classId: cls.id })
+    setIsAddingStudent(false)
+    if (result.success) {
+      onAddStudent(result.student)
+      setNewStudentName("")
+      setShowAddStudentInput(false)
+    } else {
+      console.error(result.error)
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto ">
+      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-primary">{cls.name} - Students</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-primary">{cls.name} - Students</DialogTitle>
         </DialogHeader>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {cls.students.map((student) => (
@@ -97,6 +111,43 @@ const ClassDetailsDialog = ({
               </CardContent>
             </Card>
           ))}
+        </div>
+        <div className="mt-6 border-t pt-4">
+          {showAddStudentInput ? (
+            <div className="flex items-center space-x-2">
+              <Input
+                placeholder="New student name"
+                value={newStudentName}
+                onChange={(e) => setNewStudentName(e.target.value)}
+                className="flex-grow"
+              />
+              <Button 
+                onClick={handleAddStudent} 
+                disabled={isAddingStudent || !newStudentName.trim()}
+                size="sm"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add
+              </Button>
+              <Button
+                onClick={() => setShowAddStudentInput(false)}
+                size="sm"
+                variant="outline"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => setShowAddStudentInput(true)}
+              size="sm"
+              variant="outline"
+              className="w-full text-primary border border-primary-200/50 hover:text-primary-700 hover:bg-primary/10"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add Student
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
