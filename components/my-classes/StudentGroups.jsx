@@ -34,6 +34,7 @@ const StudentGroups = ({ cls }) => {
   const [editingGroup, setEditingGroup] = useState(null);
   const [editedGroupName, setEditedGroupName] = useState("");
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const fetchGroups = useCallback(async () => {
     setIsLoading(true);
@@ -59,6 +60,7 @@ const StudentGroups = ({ cls }) => {
       );
       setUnassignedStudents(unassigned);
       setOriginalStudentOrder(cls.students.map((s) => s.id));
+      setHasChanges(false); // Reset changes flag after fetching
     } catch (error) {
       console.error("Error fetching groups:", error);
     } finally {
@@ -147,20 +149,21 @@ const StudentGroups = ({ cls }) => {
 
     setIsDragging(false);
     setHoveredGroupId(null);
+    setHasChanges(true); // Set changes flag
   };
 
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      const groupsToUpdate = groups.map(group => ({
+      const groupsToUpdate = groups.map((group) => ({
         id: group.id,
         name: group.name,
-        students: groupAssignments[group.id] || []
+        students: groupAssignments[group.id] || [],
       }));
 
       const result = await updateGroups({
         groups: groupsToUpdate,
-        classId: cls.id
+        classId: cls.id,
       });
 
       if (result.success) {
@@ -169,6 +172,7 @@ const StudentGroups = ({ cls }) => {
           description: "Groups updated successfully",
         });
         fetchGroups(); // Refresh the groups after saving
+        setHasChanges(false); // Reset changes flag after successful save
       } else {
         throw new Error(result.error);
       }
@@ -201,6 +205,21 @@ const StudentGroups = ({ cls }) => {
           originalStudentOrder.indexOf(b.id)
       );
     });
+
+    // Check if we've reverted to the original state
+    setTimeout(() => {
+      const currentAssignments = { ...groupAssignments };
+      currentAssignments[groupId] = currentAssignments[groupId].filter(s => s.id !== student.id);
+      
+      const isOriginalState = groups.every(group => {
+        const currentStudents = currentAssignments[group.id] || [];
+        const originalStudents = group.students || [];
+        return currentStudents.length === originalStudents.length &&
+          currentStudents.every(s => originalStudents.some(os => os.id === s.id));
+      });
+
+      setHasChanges(!isOriginalState);
+    }, 0);
   };
 
   const handleEditGroup = (group) => {
@@ -218,11 +237,11 @@ const StudentGroups = ({ cls }) => {
         groupId: editingGroup.id,
         newName: editedGroupName,
         students: groupAssignments[editingGroup.id] || [],
-        classId: cls.id
+        classId: cls.id,
       });
       if (result.success) {
-        setGroups(prevGroups =>
-          prevGroups.map(g =>
+        setGroups((prevGroups) =>
+          prevGroups.map((g) =>
             g.id === editingGroup.id ? { ...g, name: editedGroupName } : g
           )
         );
@@ -248,17 +267,19 @@ const StudentGroups = ({ cls }) => {
     try {
       const result = await deleteGroup(groupId);
       if (result.success) {
-        setGroups(groups.filter(group => group.id !== groupId));
-        setGroupAssignments(prev => {
+        setGroups(groups.filter((group) => group.id !== groupId));
+        setGroupAssignments((prev) => {
           const newAssignments = { ...prev };
           delete newAssignments[groupId];
           return newAssignments;
         });
         // Move students from the deleted group back to unassigned
         const deletedGroupStudents = groupAssignments[groupId] || [];
-        setUnassignedStudents(prev => 
-          [...prev, ...deletedGroupStudents].sort((a, b) =>
-            originalStudentOrder.indexOf(a.id) - originalStudentOrder.indexOf(b.id)
+        setUnassignedStudents((prev) =>
+          [...prev, ...deletedGroupStudents].sort(
+            (a, b) =>
+              originalStudentOrder.indexOf(a.id) -
+              originalStudentOrder.indexOf(b.id)
           )
         );
         toast({
@@ -286,24 +307,36 @@ const StudentGroups = ({ cls }) => {
 
   return (
     <div className="flex flex-col space-y-4">
+      <div className="flex justify-between mx-5">
+        <Button onClick={() => setIsCreateGroupDialogOpen(true)} className="bg-primary hover:bg-primary-700">
+          <Plus className="mr-2 h-4 w-4" />
+          Create New Group
+        </Button>
+        <Button onClick={handleSave} disabled={isLoading || !hasChanges} className="bg-primary hover:bg-primary-700">
+          <Save className="mr-2 h-4 w-4" />
+          Save Assignments
+        </Button>
+      </div>
       <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
         <Card className="w-full md:w-1/3 lg:w-3/10">
           <CardHeader>
             <CardTitle>Unassigned Students</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[60vh]">
-              {unassignedStudents.map((student) => (
-                <div
-                  key={student.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, student)}
-                  className="p-2 mb-2 bg-primary/10 rounded cursor-move flex justify-between items-center text-sm"
-                >
-                  <span>{student.name}</span>
-                </div>
-              ))}
-            </ScrollArea>
+            <div className="h-[60vh] overflow-auto pr-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div className="space-y-2">
+                {unassignedStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, student)}
+                    className="p-2 bg-primary/10 rounded cursor-move flex justify-between items-center text-sm"
+                  >
+                    <span>{student.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -322,14 +355,14 @@ const StudentGroups = ({ cls }) => {
                     : ""
                 }`}
               >
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle>{group.name}</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between pb-2 border-b mb-5">
+                  <CardTitle className="text-primary font-bold text-lg">{group.name}</CardTitle>
                   <div className="flex space-x-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEditGroup(group)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 text-primary"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -337,7 +370,7 @@ const StudentGroups = ({ cls }) => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setDeleteConfirmation(group)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 text-secondary"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -355,9 +388,7 @@ const StudentGroups = ({ cls }) => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() =>
-                          handleRemoveStudent(group.id, student)
-                        }
+                        onClick={() => handleRemoveStudent(group.id, student)}
                         className="h-6 w-6 p-0 ml-1"
                       >
                         <X className="h-4 w-4" />
@@ -369,17 +400,6 @@ const StudentGroups = ({ cls }) => {
             ))}
           </div>
         </ScrollArea>
-      </div>
-
-      <div className="flex justify-between">
-        <Button onClick={() => setIsCreateGroupDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create New Group
-        </Button>
-        <Button onClick={handleSave} disabled={isLoading}>
-          <Save className="mr-2 h-4 w-4" />
-          Save Assignments
-        </Button>
       </div>
 
       <Dialog
@@ -426,21 +446,27 @@ const StudentGroups = ({ cls }) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
+      <Dialog
+        open={!!deleteConfirmation}
+        onOpenChange={() => setDeleteConfirmation(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete the group "{deleteConfirmation?.name}"? 
-              This action cannot be undone.
+              Are you sure you want to delete the group "
+              {deleteConfirmation?.name}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmation(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmation(null)}
+            >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => handleDeleteGroup(deleteConfirmation.id)}
             >
               Delete

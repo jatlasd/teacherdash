@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Dialog,
@@ -7,12 +7,15 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from "@/components/ui/dialog"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import StudentList from './StudentList'
-import { removeStudentFromClass, addStudentToClass } from '@/app/actions/classActions'
-import StudentGroups from "./StudentGroups"
+} from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import StudentList from "./StudentList";
+import {
+  removeStudentFromClass,
+  addStudentToClass,
+} from "@/app/actions/classActions";
+import StudentGroups from "./StudentGroups";
 
 const ClassDetailsDialog = ({
   cls,
@@ -22,96 +25,118 @@ const ClassDetailsDialog = ({
   onRemoveStudent,
   onAddStudent,
 }) => {
-  const [activeTab, setActiveTab] = useState('students')
-  const [deleteConfirmation, setDeleteConfirmation] = useState(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [students, setStudents] = useState(cls.students || [])
+  const [activeTab, setActiveTab] = useState("students");
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [students, setStudents] = useState(cls.students || []);
 
   useEffect(() => {
-    setStudents(cls.students || [])
-  }, [cls.students])
+    setStudents(cls.students || []);
+  }, [cls.students]);
 
   const handleRemoveStudent = async (studentId) => {
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
-      const result = await removeStudentFromClass({ studentId, classId: cls.id })
+      const result = await removeStudentFromClass({
+        studentId,
+        classId: cls.id,
+      });
       if (result.success) {
-        setStudents(students.filter(student => student.id !== studentId))
-        setDeleteConfirmation(null)
+        setStudents(students.filter((student) => student.id !== studentId));
+        setDeleteConfirmation(null);
       } else {
-        console.error(result.error)
+        console.error(result.error);
       }
     } catch (error) {
-      console.error('Error removing student:', error)
+      console.error("Error removing student:", error);
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   const handleAddStudent = async (newStudentName) => {
-    if (!newStudentName.trim()) return
+    if (!newStudentName.trim()) return;
     try {
-      const result = await addStudentToClass({ name: newStudentName, classId: cls.id })
+      const result = await addStudentToClass({
+        name: newStudentName,
+        classId: cls.id,
+      });
       if (result.success) {
-        setStudents(prevStudents => [...prevStudents, result.student])
-        onAddStudent(result.student) // Notify parent component
+        setStudents((prevStudents) => [...prevStudents, result.student]);
+        onAddStudent(result.student);
       } else {
-        console.error(result.error)
+        console.error(result.error);
       }
     } catch (error) {
-      console.error('Error adding student:', error)
+      console.error("Error adding student:", error);
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-primary">{cls.name} - Details</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-primary">
+            {cls.name} - Details
+          </DialogTitle>
         </DialogHeader>
         <div className="flex space-x-4 mb-4">
           <Button
-            onClick={() => setActiveTab('students')}
-            variant={activeTab === 'students' ? 'default' : 'outline'}
+            onClick={() => setActiveTab("students")}
+            variant={activeTab === "students" ? "default" : "outline"}
+            className={
+              activeTab === "students"
+                ? "bg-primary hover:bg-primary-700 border-0 text-white"
+                : "text-primary hover:text-primary-700"
+            }
           >
             Students
           </Button>
           <Button
-            onClick={() => setActiveTab('groups')}
-            variant={activeTab === 'groups' ? 'default' : 'outline'}
+            onClick={() => setActiveTab("groups")}
+            variant={activeTab === "groups" ? "default" : "outline"}
+            className={
+              activeTab === "groups"
+                ? "bg-primary hover:bg-primary-700 border-0 text-white"
+                : "text-primary hover:text-primary-700"
+            }
           >
             Groups
           </Button>
         </div>
-        {activeTab === 'students' && (
+        {activeTab === "students" && (
           <StudentList
-            cls={{ ...cls, students }} 
+            cls={{ ...cls, students }}
             onEditStudent={onEditStudent}
             onRemoveStudent={handleRemoveStudent}
             onAddStudent={handleAddStudent}
             onDeleteConfirmation={setDeleteConfirmation}
           />
         )}
-        {activeTab === 'groups' && (
+        {activeTab === "groups" && (
           <div>
-            {/* Placeholder for future Groups component */}
-            <StudentGroups
-              cls={cls}
-            />
+            <StudentGroups cls={cls} />
           </div>
         )}
       </DialogContent>
 
-      <Dialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
+      <Dialog
+        open={!!deleteConfirmation}
+        onOpenChange={() => setDeleteConfirmation(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove {deleteConfirmation?.name} from this class?
+              Are you sure you want to remove {deleteConfirmation?.name} from
+              this class?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmation(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmation(null)}
+            >
               Cancel
             </Button>
             <Button
@@ -119,13 +144,13 @@ const ClassDetailsDialog = ({
               onClick={() => handleRemoveStudent(deleteConfirmation.id)}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Removing...' : 'Remove'}
+              {isDeleting ? "Removing..." : "Remove"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </Dialog>
-  )
-}
+  );
+};
 
-export default ClassDetailsDialog
+export default ClassDetailsDialog;
