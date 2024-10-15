@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Users, Brain, UserCheck, Calculator, Clock } from "lucide-react";
+import { Users, Brain, UserCheck, Calculator, Clock, RefreshCcw } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import TodoList from "./todos/TodoList";
@@ -42,6 +42,13 @@ const appCards = [
     icon: <Clock className="h-8 w-8" />,
     description: "A simple timer",
     route: "/timer",
+  },
+  {
+    id: "Rotations",
+    title: "Rotations",
+    icon: <RefreshCcw className="h-8 w-8" />,
+    description: "Manage and display group rotations",
+    route: "/rotations",
   },
 ];
 
