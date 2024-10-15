@@ -38,6 +38,7 @@ function ClassItem({
   onEditStudent,
   onRemoveStudent,
   onDeleteClass,
+  updateStudents
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
@@ -100,6 +101,7 @@ function ClassItem({
           title: "Students added",
           description: `Successfully added ${result.data.length} student(s) to the class.`,
         });
+        updateStudents()
       } else {
         throw new Error(result.error);
       }
@@ -117,7 +119,15 @@ function ClassItem({
 
   const handleRemoveStudent = (studentId) => {
     onRemoveStudent(cls.id, studentId);
+    updateStudents()
   };
+
+  const handleAddStudent = (classId, newStudent) => {
+    if (classId === cls.id) {
+      cls.students.push(newStudent) // Update the class's student list
+    }
+    updateStudents()
+  }
 
   return (
     <Card>
@@ -266,6 +276,7 @@ function ClassItem({
           onEditStudent(cls.id, updatedStudent)
         }
         onRemoveStudent={handleRemoveStudent}
+        onAddStudent={handleAddStudent}
       />
     </Card>
   );

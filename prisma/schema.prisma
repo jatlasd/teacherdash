@@ -22,6 +22,7 @@ model Class {
   name     String
   students Student[] @relation("ClassToStudent")
   users    User[]    @relation("UserToClass")
+  groups   Group[]
   ownerId  String    @default("nothing")
 }
 
@@ -29,6 +30,15 @@ model Student {
   id      String  @id @default(uuid())
   name    String
   classes Class[] @relation("ClassToStudent")
+  groups  Group[]
+}
+
+model Group {
+  id       String    @id @default(uuid())
+  name     String
+  classId  String
+  class    Class     @relation(fields: [classId], references: [id])
+  students Student[]
 }
 
 model Todo {
