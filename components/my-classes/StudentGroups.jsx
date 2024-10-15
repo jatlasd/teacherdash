@@ -36,7 +36,7 @@ const StudentGroups = ({ cls }) => {
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const fetchGroups = useCallback(async () => {
+  const fetchGroups = async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/classes/${cls.id}/groups`);
@@ -66,11 +66,11 @@ const StudentGroups = ({ cls }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [cls.id, cls.students]);
+  }
 
   useEffect(() => {
     fetchGroups();
-  }, [fetchGroups]);
+  }, [cls.id]); // Add cls.id as a dependency
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();

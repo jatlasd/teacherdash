@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 export async function GET(request, { params }) {
-  const { classId } = params
+  const { id } = params
 
   try {
     const groups = await db.group.findMany({
-      where: { classId: classId },
+      where: { classId: id },
       include: { students: true },
     })
 
