@@ -13,7 +13,7 @@ function RotationsDisplay ({ centers }) {
   const [selectedClass, setSelectedClass] = useState(null)
   const [groups, setGroups] = useState([])
   const [centerAssignments, setCenterAssignments] = useState({})
-  const [time, setTime] = useState(300) // 5 minutes in seconds
+  const [time, setTime] = useState(300)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [editMinutes, setEditMinutes] = useState('05')
   const [editSeconds, setEditSeconds] = useState('00')
@@ -54,7 +54,7 @@ function RotationsDisplay ({ centers }) {
       if (!response.ok) throw new Error('Failed to fetch groups')
       const data = await response.json()
       setGroups(data)
-      setUnassignedGroups(data) // Initialize unassignedGroups with all groups
+      setUnassignedGroups(data)
       initializeCenterAssignments()
     } catch (error) {
       console.error('Error fetching groups:', error)

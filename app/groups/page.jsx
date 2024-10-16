@@ -41,6 +41,7 @@ const Groups = () => {
   const handleClassSelect = (cls) => {
     setSelectedClass(cls);
     setActiveStep(2);
+    // Initialize all students as present (empty set of absent students)
     setAbsentStudents(new Set());
     setGroups([]);
     setGroupingMethod(null);
@@ -200,7 +201,7 @@ const Groups = () => {
                 Today's Attendance
               </h2>
               <p className="mb-4 text-gray-500">
-                Click the checkbox next to absent students
+                Uncheck the checkbox next to absent students
               </p>
               {selectedClass && (
                 <>
@@ -212,7 +213,7 @@ const Groups = () => {
                       >
                         <Checkbox
                           id={`student-${student.id}`}
-                          checked={absentStudents.has(student.id)}
+                          checked={!absentStudents.has(student.id)}
                           onCheckedChange={() =>
                             handleStudentAbsence(student.id)
                           }
