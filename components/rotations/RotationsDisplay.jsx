@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
+import { Input } from '../ui/input'
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { X, Play, Pause, RotateCcw, ChevronRight } from 'lucide-react'
+import { X, Play, Pause, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 
 const RotationsDisplay = ({ centers }) => {
   const [classes, setClasses] = useState([])
@@ -13,10 +13,12 @@ const RotationsDisplay = ({ centers }) => {
   const [groups, setGroups] = useState([])
   const [centerAssignments, setCenterAssignments] = useState({})
   const [time, setTime] = useState(300) // 5 minutes in seconds
-  const [inputMinutes, setInputMinutes] = useState('05')
-  const [inputSeconds, setInputSeconds] = useState('00')
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [currentRotation, setCurrentRotation] = useState(0)
+  const [isOptionsVisible, setIsOptionsVisible] = useState(false)
+  const [editMinutes, setEditMinutes] = useState('05')
+  const [editSeconds, setEditSeconds] = useState('00')
+  const timeInputRef = useRef(null)
 
   useEffect(() => {
     fetchClasses()
@@ -84,27 +86,24 @@ const RotationsDisplay = ({ centers }) => {
     
     setCenterAssignments(prev => {
       const newAssignments = { ...prev }
-      // Remove the group from its previous center
       Object.keys(newAssignments).forEach(key => {
         newAssignments[key] = newAssignments[key].filter(g => g.id !== groupData.id)
       })
-      // Add the group to the new center
       newAssignments[centerId] = [...newAssignments[centerId], groupData]
       return newAssignments
     })
 
-    // Remove the group from the unassigned groups
     setGroups(prev => prev.filter(g => g.id !== groupData.id))
   }
 
-  const handleTimeInputChange = (e, setter) => {
-    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 2)
+  const handleTimeChange = (setter) => (e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 2)
     setter(value)
   }
 
   const handleSetTime = () => {
-    const minutes = parseInt(inputMinutes, 10) || 0
-    const seconds = parseInt(inputSeconds, 10) || 0
+    const minutes = parseInt(editMinutes, 10) || 0
+    const seconds = parseInt(editSeconds, 10) || 0
     setTime(minutes * 60 + seconds)
   }
 
@@ -119,8 +118,10 @@ const RotationsDisplay = ({ centers }) => {
   }
 
   const handleResetTimer = () => {
-    handleSetTime()
     setIsTimerRunning(false)
+    setTime(300)
+    setEditMinutes('05')
+    setEditSeconds('00')
   }
 
   const handleEndRotation = () => {
@@ -132,7 +133,6 @@ const RotationsDisplay = ({ centers }) => {
       })
       return newAssignments
     })
-    setCurrentRotation((prev) => (prev - 1 + centers.length) % centers.length)
     handleResetTimer()
   }
 
@@ -151,44 +151,64 @@ const RotationsDisplay = ({ centers }) => {
     setGroups(prev => [...prev, group])
   }
 
+  const toggleOptions = () => {
+    setIsOptionsVisible(!isOptionsVisible)
+  }
+
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
-        <Select onValueChange={handleClassSelect}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select a class" />
-          </SelectTrigger>
-          <SelectContent>
-            {classes.map((cls) => (
-              <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <div className="flex items-center space-x-2">
-          <Input
-            type="text"
-            value={inputMinutes}
-            onChange={(e) => handleTimeInputChange(e, setInputMinutes)}
-            className="w-12 text-center"
-            placeholder="MM"
-          />
-          <span>:</span>
-          <Input
-            type="text"
-            value={inputSeconds}
-            onChange={(e) => handleTimeInputChange(e, setInputSeconds)}
-            className="w-12 text-center"
-            placeholder="SS"
-          />
-          <Button onClick={handleSetTime} variant="outline">Set</Button>
+      <Button
+        onClick={toggleOptions}
+        variant="outline"
+        className="w-full flex justify-between items-center"
+      >
+        <span>Options</span>
+        {isOptionsVisible ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </Button>
+
+      {isOptionsVisible && (
+        <div className="bg-gray-100 p-4 rounded-lg space-y-4">
+          <Select onValueChange={handleClassSelect}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a class" />
+            </SelectTrigger>
+            <SelectContent>
+              {classes.map((cls) => (
+                <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center space-x-2">
+            <Input
+              type="text"
+              value={editMinutes}
+              onChange={handleTimeChange(setEditMinutes)}
+              className="w-12 text-center"
+              placeholder="MM"
+            />
+            <span>:</span>
+            <Input
+              type="text"
+              value={editSeconds}
+              onChange={handleTimeChange(setEditSeconds)}
+              className="w-12 text-center"
+              placeholder="SS"
+            />
+            <Button onClick={handleSetTime} variant="outline">Set</Button>
+          </div>
         </div>
+      )}
+
+      <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <Button onClick={handleStartTimer} disabled={isTimerRunning} size="icon"><Play className="h-4 w-4" /></Button>
-          <Button onClick={handlePauseTimer} disabled={!isTimerRunning} size="icon"><Pause className="h-4 w-4" /></Button>
-          <Button onClick={handleResetTimer} size="icon"><RotateCcw className="h-4 w-4" /></Button>
-          <Button onClick={handleEndRotation}>End Rotation</Button>
+          <Button onClick={handleStartTimer} disabled={isTimerRunning} size="icon" variant="outline" className="text-primary hover:bg-primary/10"><Play className="h-4 w-4" /></Button>
+          <Button onClick={handlePauseTimer} disabled={!isTimerRunning} size="icon" variant="outline" className="text-primary hover:bg-primary/10"><Pause className="h-4 w-4" /></Button>
+          <Button onClick={handleResetTimer} size="icon" variant="outline" className="text-primary hover:bg-primary/10"><RotateCcw className="h-4 w-4" /></Button>
         </div>
-        <div className="text-3xl font-bold">{formatTime(time)}</div>
+        <div className="text-6xl font-bold text-primary">
+          {formatTime(time)}
+        </div>
+        <Button onClick={handleEndRotation} variant="secondary" className="bg-secondary hover:bg-secondary/90 text-white">End Rotation</Button>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
@@ -212,7 +232,7 @@ const RotationsDisplay = ({ centers }) => {
               onDrop={(e) => handleDrop(e, center.id)}
               className="p-4 min-h-[200px]"
             >
-              <h3 className={`text-2xl text-center font-bold mb-2 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`}>
+              <h3 className={`text-4xl text-center font-bold mb-2 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`}>
                 {center.name}
               </h3>
               <div className="space-y-2">
@@ -221,9 +241,9 @@ const RotationsDisplay = ({ centers }) => {
                     key={group.id}
                     draggable
                     onDragStart={(e) => handleDragStart(e, group)}
-                    className="bg-gray-100 p-2 rounded cursor-move flex justify-between items-center text-sm"
+                    className="bg-gray-100 p-2 rounded cursor-move flex justify-between items-center text-sm mt-5"
                   >
-                    <span>{group.name}</span>
+                    <span className='text-xl font-semibold text-primary'>{group.name}</span>
                     <Button
                       variant="ghost"
                       size="sm"
