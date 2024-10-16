@@ -19,6 +19,7 @@ function RotationsDisplay ({ centers }) {
   const [editSeconds, setEditSeconds] = useState('00')
   const [isOptionsVisible, setIsOptionsVisible] = useState(false)
   const timeInputRef = useRef(null)
+  const [unassignedGroups, setUnassignedGroups] = useState([])
 
   useEffect(() => {
     fetchClasses()
@@ -53,6 +54,7 @@ function RotationsDisplay ({ centers }) {
       if (!response.ok) throw new Error('Failed to fetch groups')
       const data = await response.json()
       setGroups(data)
+      setUnassignedGroups(data) // Initialize unassignedGroups with all groups
       initializeCenterAssignments()
     } catch (error) {
       console.error('Error fetching groups:', error)
@@ -93,7 +95,7 @@ function RotationsDisplay ({ centers }) {
       return newAssignments
     })
 
-    setGroups(prev => prev.filter(g => g.id !== groupData.id))
+    setUnassignedGroups(prev => prev.filter(g => g.id !== groupData.id))
   }
 
   const handleTimeChange = setter => e => {
@@ -148,7 +150,7 @@ function RotationsDisplay ({ centers }) {
       newAssignments[centerId] = newAssignments[centerId].filter(g => g.id !== group.id)
       return newAssignments
     })
-    setGroups(prev => [...prev, group])
+    setUnassignedGroups(prev => [...prev, group])
   }
 
   const toggleOptions = () => {
@@ -209,7 +211,7 @@ function RotationsDisplay ({ centers }) {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
-        {groups.map(group => (
+        {unassignedGroups.map(group => (
           <div
             key={group.id}
             draggable
