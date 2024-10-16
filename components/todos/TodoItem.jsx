@@ -53,70 +53,73 @@ const TodoItem = ({ todo, onUpdate, onDelete }) => {
   }
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-start space-x-1">
       <Checkbox
         checked={todo.completed}
         onCheckedChange={handleCheckboxClick}
-        className="data-[state=checked]:bg-primary mr-3"
+        className="data-[state=checked]:bg-primary mt-1 flex-shrink-0"
       />
-      {isEditing ? (
-        <input
-          type="text"
-          value={editedText}
-          onChange={(e) => setEditedText(e.target.value)}
-          className=" p-1 border rounded"
-        />
-      ) : (
-        <span
-          className={`flex-grow ${
-            todo.completed ? "line-through text-gray-400" : ""
-          }`}
-        >
-          {todo.todo}
-        </span>
-      )}
-      {isEditing ? (
-        <>
-          <Button size="icon" variant="ghost" onClick={handleEdit}>
-            <Save className="h-4 w-4 text-primary" />
-          </Button>
-          <Button size="icon" variant="ghost" onClick={handleCancelEdit}>
-            <X className="h-4 w-4 text-secondary" />
-          </Button>
-        </>
-      ) : (
-        <>
-          <Button size="icon" variant="ghost" onClick={handleEdit}>
-            <Pencil className="h-4 w-4 text-primary" />
-          </Button>
-          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="icon" variant="ghost">
-                <Trash2 className="h-4 w-4 text-secondary" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  Are you sure you want to delete this todo?
-                </DialogTitle>
-                <DialogDescription>This action cannot be undone.</DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDeleteDialogOpen(false)}
-                >
-                  Cancel
+      <div className="flex-grow mr-1">
+        {isEditing ? (
+          <textarea
+            value={editedText}
+            onChange={(e) => setEditedText(e.target.value)}
+            className="w-full resize-none min-h-[2.5rem] max-h-32 p-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        ) : (
+          <span
+            className={`${
+              todo.completed ? "line-through text-gray-400" : ""
+            } break-words text-sm`}
+          >
+            {todo.todo}
+          </span>
+        )}
+      </div>
+      <div className="flex-shrink-0 flex">
+        {isEditing ? (
+          <>
+            <Button size="sm" variant="ghost" onClick={handleEdit} className="p-1">
+              <Save className="h-4 w-4 text-primary" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="p-1">
+              <X className="h-4 w-4 text-secondary" />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button size="sm" variant="ghost" onClick={handleEdit} className="p-1">
+              <Pencil className="h-4 w-4 text-primary" />
+            </Button>
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="ghost" className="p-1">
+                  <Trash2 className="h-4 w-4 text-secondary" />
                 </Button>
-                <Button variant="destructive" onClick={handleDelete}>
-                  Delete
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </>
-      )}
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    Are you sure you want to delete this todo?
+                  </DialogTitle>
+                  <DialogDescription>This action cannot be undone.</DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDeleteDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button variant="destructive" onClick={handleDelete}>
+                    Delete
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
+      </div>
     </div>
   )
 }

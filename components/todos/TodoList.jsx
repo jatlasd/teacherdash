@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { addTodo } from "@/app/actions/todoActions";
 import TodoItem from "./TodoItem";
 import { Check, ChevronDown, ChevronUp, Plus, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const TodoList = () => {
   const [isTodoOpen, setIsTodoOpen] = useState(false);
@@ -64,7 +65,7 @@ const TodoList = () => {
   };
 
   return (
-    <div className="mr-3 border-2  rounded-xl p-3 flex flex-col">
+    <div className="mr-3 border-2 rounded-xl p-3 flex flex-col w-64">
       <div className="flex justify-between items-center mb-2 relative">
         <div className="absolute right-0">
           <button
@@ -78,28 +79,33 @@ const TodoList = () => {
       </div>
       {isTodoOpen && (
         <>
-          <div className="flex items-center space-x-2 mb-2">
-            <input
-              type="text"
+          <div className="flex flex-col space-y-2 mb-2">
+            <textarea
               value={newTodo}
               onChange={(e) => setNewTodo(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleKeyPress(e)}
-              className="flex-grow border shadow-sm rounded px-2 py-1 focus:ring-0 focus:outline-primary-200"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleAddTodo();
+                }
+              }}
+              className="resize-none min-h-[2.5rem] max-h-32 w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Add new todo..."
             />
-            <button
+            <Button
               onClick={handleAddTodo}
-              className="bg-primary text-white p-1 rounded-md hover:bg-primary-700 transition-colors duration-200"
+              className="bg-primary text-white hover:bg-primary-700 transition-colors duration-200"
             >
-              <Plus className="h-5 w-5" />
-            </button>
+              <Plus className="h-5 w-5 mr-2" />
+              Add Todo
+            </Button>
           </div>
           {isLoading ? (
             <div className="flex justify-center items-center py-4">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="flex flex-col gap-y-1">
+            <div className="flex flex-col gap-y-2">
               {todos.map((todo) => (
                 <TodoItem
                   key={todo.id}

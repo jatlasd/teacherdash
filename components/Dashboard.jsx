@@ -56,7 +56,7 @@ function Dashboard() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
       <main className="container mx-auto p-4">
         <div className="w-full flex justify-center">
           <div className="w-2/3 flex flex-col items-center border rounded-xl px-2 py-4 shadow text-center">
@@ -67,11 +67,11 @@ function Dashboard() {
             <Link href="/feedback" className="text-blue-600 hover:text-blue-800 hover:underline font-semibold text-lg mt-1">Click here to fill out the feedback form</Link>
           </div>
         </div>
-        <div className="flex">
-          <div className="mt-8 w-1/5 mr-4">
+        <div className="flex relative">
+          <div className="w-1/5 mr-4 absolute top-8 left-0 z-10 bg-white">
             <TodoList />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 ml-[20%] w-4/5">
             {appCards.map((app) => (
               <Card
                 key={app.id}
