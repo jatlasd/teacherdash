@@ -16,6 +16,7 @@ import {
   createGroup,
   updateGroups,
   deleteGroup,
+  updateGroup // Add this line
 } from "@/app/actions/classGroupActions";
 import { useToast } from "@/hooks/use-toast";
 

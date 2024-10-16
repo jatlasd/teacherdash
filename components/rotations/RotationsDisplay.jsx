@@ -6,6 +6,7 @@ import { Input } from '../ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { X, Play, Pause, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
+import { Separator } from '../ui/separator'
 
 function RotationsDisplay ({ centers }) {
   const [classes, setClasses] = useState([])
@@ -255,6 +256,23 @@ function RotationsDisplay ({ centers }) {
           </Card>
         ))}
       </div>
+      <Separator/>
+        {groups.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {groups.map((group) => (
+              <Card key={group.id}>
+                <CardContent className="p-4">
+                  <h3 className="text-2xl font-semibold text-primary mb-2 text-center underline">{group.name}</h3>
+                  <ul className="space-y-1">
+                    {group.students.map((student) => (
+                      <li key={student.id} className=" text-gray-600 text-lg">{student.name}</li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
     </div>
   )
 }
