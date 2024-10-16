@@ -57,7 +57,7 @@ const TodoItem = ({ todo, onUpdate, onDelete }) => {
       <Checkbox
         checked={todo.completed}
         onCheckedChange={handleCheckboxClick}
-        className="data-[state=checked]:bg-primary"
+        className="data-[state=checked]:bg-primary mr-3"
       />
       {isEditing ? (
         <input
