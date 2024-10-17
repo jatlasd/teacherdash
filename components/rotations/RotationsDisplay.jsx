@@ -238,10 +238,10 @@ function RotationsDisplay ({ centers }) {
             {timerWarningEnabled && (
               <div className="flex items-center space-x-2">
                 <Input
-                  type="number"
+                  type="text"
                   value={warningTime}
                   onChange={(e) => setWarningTime(e.target.value)}
-                  className="w-20 text-center"
+                  className="w-1/6 text-center"
                   placeholder="Minutes"
                 />
                 <Button onClick={handleGenerateWarning} variant="outline">Set Warning</Button>
