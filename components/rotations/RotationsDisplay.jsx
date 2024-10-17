@@ -324,9 +324,15 @@ function RotationsDisplay ({ centers }) {
                 <CardContent className="p-4">
                   <h3 className="text-2xl font-semibold text-primary mb-2 text-center underline">{group.name}</h3>
                   <ul className="space-y-1">
-                    {group.students.map((student) => (
-                      <li key={student.id} className=" text-gray-600 text-lg">{student.name}</li>
-                    ))}
+                    {group.students
+                      .sort((a, b) => {
+                        const lastNameA = a.name.split(' ').pop();
+                        const lastNameB = b.name.split(' ').pop();
+                        return lastNameA.localeCompare(lastNameB);
+                      })
+                      .map((student) => (
+                        <li key={student.id} className="text-gray-600 text-lg">{student.name}</li>
+                      ))}
                   </ul>
                 </CardContent>
               </Card>

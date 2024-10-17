@@ -89,7 +89,7 @@ const TodoList = () => {
                   handleAddTodo();
                 }
               }}
-              className="resize-none min-h-[2.5rem] max-h-32 w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+              className="resize-none min-h-[2.5rem] text-sm max-h-32 w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Add new todo..."
             />
             <Button
