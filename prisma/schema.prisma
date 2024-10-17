@@ -15,6 +15,7 @@ model User {
   email       String  @default("example@example.com")
   classes     Class[] @relation("UserToClass")
   todos       Todo[]  @relation("TodoToUser")
+  centers     Json?
 }
 
 model Class {
