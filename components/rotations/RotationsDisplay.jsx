@@ -23,6 +23,8 @@ function RotationsDisplay ({ centers }) {
   const [timerWarningEnabled, setTimerWarningEnabled] = useState(false)
   const [twoMinuteWarningEnabled, setTwoMinuteWarningEnabled] = useState(false)
   const [oneMinuteWarningEnabled, setOneMinuteWarningEnabled] = useState(false)
+  const twoMinuteAudio = useRef(new Audio('/2minutes.mp3'))
+  const oneMinuteAudio = useRef(new Audio('/1minute.mp3'))
 
   useEffect(() => {
     fetchClasses()
@@ -32,13 +34,22 @@ function RotationsDisplay ({ centers }) {
     let interval
     if (isTimerRunning && time > 0) {
       interval = setInterval(() => {
-        setTime(prevTime => prevTime - 1)
+        setTime(prevTime => {
+          if (timerWarningEnabled) {
+            if (prevTime === 121 && twoMinuteWarningEnabled) {
+              twoMinuteAudio.current.play()
+            } else if (prevTime === 61 && oneMinuteWarningEnabled) {
+              oneMinuteAudio.current.play()
+            }
+          }
+          return prevTime - 1
+        })
       }, 1000)
     } else if (time === 0) {
       handleEndRotation()
     }
     return () => clearInterval(interval)
-  }, [isTimerRunning, time])
+  }, [isTimerRunning, time, timerWarningEnabled, twoMinuteWarningEnabled, oneMinuteWarningEnabled])
 
   const fetchClasses = async () => {
     try {
@@ -197,6 +208,37 @@ function RotationsDisplay ({ centers }) {
               />
               <Button onClick={handleSetTime} variant="outline">Set</Button>
             </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="timerWarning"
+                checked={timerWarningEnabled}
+                onChange={(e) => setTimerWarningEnabled(e.target.checked)}
+              />
+              <label htmlFor="timerWarning">Enable Timer Warnings</label>
+            </div>
+            {timerWarningEnabled && (
+              <>
+                <div className="flex items-center space-x-2 ml-4">
+                  <input
+                    type="checkbox"
+                    id="twoMinuteWarning"
+                    checked={twoMinuteWarningEnabled}
+                    onChange={(e) => setTwoMinuteWarningEnabled(e.target.checked)}
+                  />
+                  <label htmlFor="twoMinuteWarning">2 Minute Warning</label>
+                </div>
+                <div className="flex items-center space-x-2 ml-4">
+                  <input
+                    type="checkbox"
+                    id="oneMinuteWarning"
+                    checked={oneMinuteWarningEnabled}
+                    onChange={(e) => setOneMinuteWarningEnabled(e.target.checked)}
+                  />
+                  <label htmlFor="oneMinuteWarning">1 Minute Warning</label>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
