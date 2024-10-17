@@ -20,6 +20,9 @@ function RotationsDisplay ({ centers }) {
   const [isOptionsVisible, setIsOptionsVisible] = useState(false)
   const timeInputRef = useRef(null)
   const [unassignedGroups, setUnassignedGroups] = useState([])
+  const [timerWarningEnabled, setTimerWarningEnabled] = useState(false)
+  const [twoMinuteWarningEnabled, setTwoMinuteWarningEnabled] = useState(false)
+  const [oneMinuteWarningEnabled, setOneMinuteWarningEnabled] = useState(false)
 
   useEffect(() => {
     fetchClasses()
