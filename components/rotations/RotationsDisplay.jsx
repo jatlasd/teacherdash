@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { X, Play, Pause, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import { Separator } from '../ui/separator'
+import { generateWarning } from '@/app/actions/openaiActions'
 
 function RotationsDisplay ({ centers }) {
   const [classes, setClasses] = useState([])
@@ -19,12 +20,11 @@ function RotationsDisplay ({ centers }) {
   const [editSeconds, setEditSeconds] = useState('00')
   const [isOptionsVisible, setIsOptionsVisible] = useState(false)
   const timeInputRef = useRef(null)
+  const [warningTime, setWarningTime] = useState('')
+  const [warningAudioSrc, setWarningAudioSrc] = useState('')
   const [unassignedGroups, setUnassignedGroups] = useState([])
   const [timerWarningEnabled, setTimerWarningEnabled] = useState(false)
-  const [twoMinuteWarningEnabled, setTwoMinuteWarningEnabled] = useState(false)
-  const [oneMinuteWarningEnabled, setOneMinuteWarningEnabled] = useState(false)
-  const twoMinuteAudio = useRef(new Audio('/2minutes.mp3'))
-  const oneMinuteAudio = useRef(new Audio('/1minute.mp3'))
+
 
   useEffect(() => {
     fetchClasses()
@@ -35,12 +35,8 @@ function RotationsDisplay ({ centers }) {
     if (isTimerRunning && time > 0) {
       interval = setInterval(() => {
         setTime(prevTime => {
-          if (timerWarningEnabled) {
-            if (prevTime === 121 && twoMinuteWarningEnabled) {
-              twoMinuteAudio.current.play()
-            } else if (prevTime === 61 && oneMinuteWarningEnabled) {
-              oneMinuteAudio.current.play()
-            }
+          if (warningAudioSrc && prevTime === parseInt(warningTime) * 60) {
+            new Audio(warningAudioSrc).play()
           }
           return prevTime - 1
         })
@@ -49,7 +45,7 @@ function RotationsDisplay ({ centers }) {
       handleEndRotation()
     }
     return () => clearInterval(interval)
-  }, [isTimerRunning, time, timerWarningEnabled, twoMinuteWarningEnabled, oneMinuteWarningEnabled])
+  }, [isTimerRunning, time, warningTime, warningAudioSrc])
 
   const fetchClasses = async () => {
     try {
@@ -171,6 +167,28 @@ function RotationsDisplay ({ centers }) {
     setIsOptionsVisible(!isOptionsVisible)
   }
 
+  const warningMessages = [
+    `Hey there! Just a heads up, we've got about ${warningTime} ${warningTime === '1' ? 'minute' : 'minutes'} to go. Let's wrap things up!`,
+    `Time flies when you're having fun! We have ${warningTime} ${warningTime === '1' ? 'minute' : 'minutes'} left in this rotation.`,
+    `Attention everyone! ${warningTime} ${warningTime === '1' ? 'minute' : 'minutes'} remaining. Start wrapping up your activities.`,
+    `Quick update: ${warningTime} ${warningTime === '1' ? 'minute' : 'minutes'} left on the clock. Finish strong!`,
+    `Time check! We're down to our last ${warningTime} ${warningTime === '1' ? 'minute' : 'minutes'}. Make them count!`,
+    `Heads up, team! Only ${warningTime} ${warningTime === '1' ? 'minute' : 'minutes'} left in this rotation. Start wrapping up.`,
+    `Time's almost up! We have ${warningTime} ${warningTime === '1' ? 'minute' : 'minutes'} remaining. Let's finish what we started.`,
+    `Just a friendly reminder: ${warningTime} ${warningTime === '1' ? 'minute' : 'minutes'} left. Let's prepare for the next rotation.`,
+    `Final countdown! ${warningTime} ${warningTime === '1' ? 'minute' : 'minutes'} remaining. Get ready to switch centers soon.`
+  ]
+
+  const handleGenerateWarning = async () => {
+    try {
+      const randomMessage = warningMessages[Math.floor(Math.random() * warningMessages.length)]
+      const audioDataUrl = await generateWarning({ input: randomMessage })
+      setWarningAudioSrc(audioDataUrl)
+    } catch (error) {
+      console.error('Error generating warning:', error)
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div className="bg-gray-100 p-4 rounded-lg space-y-4">
@@ -218,26 +236,21 @@ function RotationsDisplay ({ centers }) {
               <label htmlFor="timerWarning">Enable Timer Warnings</label>
             </div>
             {timerWarningEnabled && (
-              <>
-                <div className="flex items-center space-x-2 ml-4">
-                  <input
-                    type="checkbox"
-                    id="twoMinuteWarning"
-                    checked={twoMinuteWarningEnabled}
-                    onChange={(e) => setTwoMinuteWarningEnabled(e.target.checked)}
-                  />
-                  <label htmlFor="twoMinuteWarning">2 Minute Warning</label>
-                </div>
-                <div className="flex items-center space-x-2 ml-4">
-                  <input
-                    type="checkbox"
-                    id="oneMinuteWarning"
-                    checked={oneMinuteWarningEnabled}
-                    onChange={(e) => setOneMinuteWarningEnabled(e.target.checked)}
-                  />
-                  <label htmlFor="oneMinuteWarning">1 Minute Warning</label>
-                </div>
-              </>
+              <div className="flex items-center space-x-2">
+                <Input
+                  type="number"
+                  value={warningTime}
+                  onChange={(e) => setWarningTime(e.target.value)}
+                  className="w-20 text-center"
+                  placeholder="Minutes"
+                />
+                <Button onClick={handleGenerateWarning} variant="outline">Set Warning</Button>
+              </div>
+            )}
+            {warningAudioSrc && (
+              <div className="text-sm text-green-600">
+                Warning audio set for {warningTime} minutes remaining
+              </div>
             )}
           </div>
         )}
