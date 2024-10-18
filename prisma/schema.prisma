@@ -9,13 +9,21 @@ datasource db {
 }
 
 model User {
-  id          String  @id @default(uuid())
-  clerkUserId String  @unique
+  id          String       @id @default(uuid())
+  clerkUserId String       @unique
   name        String
-  email       String  @default("example@example.com")
-  classes     Class[] @relation("UserToClass")
-  todos       Todo[]  @relation("TodoToUser")
-  centers     Json?
+  email       String       @default("example@example.com")
+  classes     Class[]      @relation("UserToClass")
+  todos       Todo[]       @relation("TodoToUser")
+  CenterLists CenterList[]
+}
+
+model CenterList {
+  id      String   @id @default(uuid())
+  name    String
+  userId  String
+  user    User     @relation(fields: [userId], references: [clerkUserId])
+  centers String[]
 }
 
 model Class {
