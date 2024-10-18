@@ -1,4 +1,4 @@
-import TopicGenerator from "@/components/debate/TopicGenerator";
+import TopicGenerator from "@/app/debate/TopicGenerator";
 import React from "react";
 
 const DebateTopic = () => {

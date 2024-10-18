@@ -24,7 +24,10 @@ function RotationsDisplay ({ centers }) {
   const [warningAudioSrc, setWarningAudioSrc] = useState('')
   const [unassignedGroups, setUnassignedGroups] = useState([])
   const [timerWarningEnabled, setTimerWarningEnabled] = useState(false)
-
+  const [centerDetails, setCenterDetails] = useState({})
+  const [editingCenterId, setEditingCenterId] = useState(null)
+  const [isDetailsAdded, setIsDetailsAdded] = useState({})
+  const detailInputRefs = useRef({})
 
   useEffect(() => {
     fetchClasses()
@@ -189,6 +192,22 @@ function RotationsDisplay ({ centers }) {
     }
   }
 
+  const handleCenterDetailClick = (centerId) => {
+    setEditingCenterId(centerId)
+    setTimeout(() => {
+      detailInputRefs.current[centerId]?.focus()
+    }, 0)
+  }
+
+  const handleCenterDetailChange = (centerId, value) => {
+    setCenterDetails(prev => ({ ...prev, [centerId]: value }))
+    setIsDetailsAdded(prev => ({ ...prev, [centerId]: value.trim() !== '' }))
+  }
+
+  const handleCenterDetailBlur = () => {
+    setEditingCenterId(null)
+  }
+
   return (
     <div className="space-y-8">
       <div className="bg-gray-100 p-4 rounded-lg space-y-4">
@@ -292,7 +311,28 @@ function RotationsDisplay ({ centers }) {
               <h3 className={`text-4xl text-center font-bold mb-2 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`}>
                 {center.name}
               </h3>
-              <div className="space-y-2">
+              <div className="border rounded border-primary/50 flex justify-center items-center p-2 bg-primary-400/20 shadow-sm">
+                {editingCenterId === center.id ? (
+                  <Input
+                    ref={el => detailInputRefs.current[center.id] = el}
+                    value={centerDetails[center.id] || ''}
+                    onChange={e => handleCenterDetailChange(center.id, e.target.value)}
+                    onBlur={handleCenterDetailBlur}
+                    placeholder="Enter center details"
+                    className=" text-sm focus-visible:ring-0 focus:outline-transparent focus:border-transparent shadow-none"
+                  />
+                ) : (
+                  <p
+                    onClick={() => handleCenterDetailClick(center.id)}
+                    className={`cursor-text text-center font-semibold tracking-wide ${
+                      isDetailsAdded[center.id] ? 'text-primary' : 'text-gray-400'
+                    }`}
+                  >
+                    {centerDetails[center.id] || 'Click to add details'}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2 mt-4">
                 {centerAssignments[center.id]?.map(group => (
                   <div
                     key={group.id}
