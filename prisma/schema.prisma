@@ -16,6 +16,7 @@ model User {
   classes     Class[]      @relation("UserToClass")
   todos       Todo[]       @relation("TodoToUser")
   CenterLists CenterList[]
+  Lists       List[]
 }
 
 model CenterList {
@@ -56,4 +57,12 @@ model Todo {
   completed   Boolean @default(false)
   clerkUserId String
   user        User    @relation("TodoToUser", fields: [clerkUserId], references: [clerkUserId])
+}
+
+model List {
+  id     String   @id @default(uuid())
+  title  String
+  userId String
+  user   User     @relation(fields: [userId], references: [clerkUserId])
+  items  String[]
 }

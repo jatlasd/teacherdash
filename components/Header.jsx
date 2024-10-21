@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import UserLists from "./UserLists";
 
 function Header() {
   const router = useRouter();
@@ -24,9 +25,10 @@ function Header() {
         >
           Teacher Dashboard
         </h1>
-        <div className="flex gap-x-5">
+        <div className="flex gap-x-5 items-center">
           <SignedIn>
             <Link href="/my-classes" className="text-white transition-colors p-2 hover:bg-white/10 rounded">My Classes</Link>
+            <UserLists />
             <UserButton />
           </SignedIn>
         </div>
