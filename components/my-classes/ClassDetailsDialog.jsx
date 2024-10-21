@@ -16,6 +16,7 @@ import {
   addStudentToClass,
 } from "@/app/actions/classActions";
 import StudentGroups from "./StudentGroups";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ClassDetailsDialog = ({
   cls,
@@ -28,11 +29,27 @@ const ClassDetailsDialog = ({
   const [activeTab, setActiveTab] = useState("students");
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [students, setStudents] = useState(cls.students || []);
+  const [students, setStudents] = useState([]);
+  const [sortBy, setSortBy] = useState("lastName");
 
   useEffect(() => {
-    setStudents(cls.students || []);
-  }, [cls.students]);
+    sortStudents();
+  }, [cls.students, sortBy]);
+
+  const sortStudents = () => {
+    const sortedStudents = [...(cls.students || [])].sort((a, b) => {
+      if (sortBy === "lastName") {
+        const lastNameA = a.name.split(' ').pop().toLowerCase();
+        const lastNameB = b.name.split(' ').pop().toLowerCase();
+        return lastNameA.localeCompare(lastNameB);
+      } else {
+        const firstNameA = a.name.split(' ')[0].toLowerCase();
+        const firstNameB = b.name.split(' ')[0].toLowerCase();
+        return firstNameA.localeCompare(firstNameB);
+      }
+    });
+    setStudents(sortedStudents);
+  };
 
   const handleRemoveStudent = async (studentId) => {
     setIsDeleting(true);
@@ -62,7 +79,8 @@ const ClassDetailsDialog = ({
         classId: cls.id,
       });
       if (result.success) {
-        setStudents((prevStudents) => [...prevStudents, result.student]);
+        const updatedStudents = [...students, result.student];
+        sortStudents();
         onAddStudent(result.student);
       } else {
         console.error(result.error);
@@ -80,7 +98,7 @@ const ClassDetailsDialog = ({
             {cls.name} - Details
           </DialogTitle>
         </DialogHeader>
-        <div className="flex space-x-4 mb-4">
+        <div className="flex space-x-4">
           <Button
             onClick={() => setActiveTab("students")}
             variant={activeTab === "students" ? "default" : "outline"}
@@ -105,13 +123,26 @@ const ClassDetailsDialog = ({
           </Button>
         </div>
         {activeTab === "students" && (
-          <StudentList
-            cls={{ ...cls, students }}
-            onEditStudent={onEditStudent}
-            onRemoveStudent={handleRemoveStudent}
-            onAddStudent={handleAddStudent}
-            onDeleteConfirmation={setDeleteConfirmation}
-          />
+          <>
+            <div className="flex justify-end">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lastName">Sort by Last Name</SelectItem>
+                  <SelectItem value="firstName">Sort by First Name</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <StudentList
+              cls={{ ...cls, students }}
+              onEditStudent={onEditStudent}
+              onRemoveStudent={handleRemoveStudent}
+              onAddStudent={handleAddStudent}
+              onDeleteConfirmation={setDeleteConfirmation}
+            />
+          </>
         )}
         {activeTab === "groups" && (
           <div>
