@@ -94,3 +94,16 @@ export async function deleteList(listId) {
     return { success: false, error: error.message }
   }
 }
+
+export async function updateListItems(listId, items) {
+  try {
+    const updatedList = await db.list.update({
+      where: { id: listId },
+      data: { items },
+    });
+    return { success: true, data: updatedList };
+  } catch (error) {
+    console.error('Error updating list items:', error);
+    return { success: false, error: error.message };
+  }
+}
