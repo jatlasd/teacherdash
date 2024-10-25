@@ -7,6 +7,7 @@ import {
   deleteList,
   updateListItems,
   updateListColor,
+  updateListTitle,
 } from "@/app/actions/userListActions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,11 +18,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Trash2, Pencil, Pipette } from "lucide-react";
+import { Trash2, Pencil, Pipette, CircleX } from "lucide-react";
 
 const colors = [
-  "#FFE4B5", "#FFCFE6", "#B5EAD7", "#C7CEEA",
-  "#FFDAB9", "#E0BBE4", "#FFF4CC", "#D4F0F0",
+  "#FFE4B5",
+  "#FFCFE6",
+  "#B5EAD7",
+  "#C7CEEA",
+  "#FFDAB9",
+  "#E0BBE4",
+  "#FFF4CC",
+  "#D4F0F0",
 ];
 
 function UserLists() {
@@ -31,6 +38,7 @@ function UserLists() {
   const [isAddNewList, setIsAddNewList] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
   const colorPickerRef = useRef(null);
 
   useEffect(() => {
@@ -52,7 +60,10 @@ function UserLists() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (colorPickerRef.current && !colorPickerRef.current.contains(event.target)) {
+      if (
+        colorPickerRef.current &&
+        !colorPickerRef.current.contains(event.target)
+      ) {
         setIsColorPickerOpen(false);
       }
     };
@@ -121,6 +132,22 @@ function UserLists() {
     }, 500);
   };
 
+  const handleTitleChange = async (listId, newTitle) => {
+    if (newTitle.trim() === "") return; // Prevent empty titles
+    const result = await updateListTitle(listId, newTitle);
+    if (result.success) {
+      setLists(
+        lists.map((list) =>
+          list.id === listId ? { ...list, title: newTitle } : list
+        )
+      );
+    } else {
+      console.error("Failed to update list title:", result.error);
+      // Optionally, revert the title if the API call fails
+      setEditedTitle(lists.find((list) => list.id === listId).title);
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -167,27 +194,43 @@ function UserLists() {
               )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {lists.length > 0 && lists.map((list) => (
-                <div
-                  key={list.id}
-                  className="p-4 border rounded-lg shadow-md cursor-pointer h-16 flex justify-center items-center"
-                  onClick={() => handleFocusList(list.id)}
-                  style={{ backgroundColor: list.color || '#FFE4B5' }}
-                >
-                  <h3 className="font-bold text-lg">{list.title}</h3>
-                </div>
-              ))}
+              {lists.length > 0 &&
+                lists.map((list) => (
+                  <div
+                    key={list.id}
+                    className="p-4 border rounded-lg shadow-md cursor-pointer h-16 flex justify-center items-center"
+                    onClick={() => handleFocusList(list.id)}
+                    style={{ backgroundColor: list.color || "#FFE4B5" }}
+                  >
+                    <h3 className="font-bold text-lg capitalize">
+                      {list.title}
+                    </h3>
+                  </div>
+                ))}
             </div>
           </>
         ) : (
-          <div 
+          <div
             className="p-4 border rounded-lg shadow-md"
-            style={{ backgroundColor: lists.find(list => list.id === focusedListId)?.color || '#FFE4B5' }}
+            style={{
+              backgroundColor:
+                lists.find((list) => list.id === focusedListId)?.color ||
+                "#FFE4B5",
+            }}
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-bold text-lg">
-                {lists.find((list) => list.id === focusedListId).title}
-              </h3>
+              {isEditing ? (
+                <Input
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  onBlur={() => handleTitleChange(focusedListId, editedTitle)}
+                  className="font-bold text-lg capitalize bg-white/80 w-fit border-none shadow-sm"
+                />
+              ) : (
+                <h3 className="font-bold text-lg capitalize">
+                  {lists.find((list) => list.id === focusedListId).title}
+                </h3>
+              )}
               <div className="flex items-center space-x-2">
                 {isEditing ? (
                   <>
@@ -208,29 +251,41 @@ function UserLists() {
                                 key={index}
                                 className="w-8 h-8 cursor-pointer rounded-full border border-gray-300 transition-transform hover:scale-110"
                                 style={{ backgroundColor: color }}
-                                onClick={() => handleColorChange(focusedListId, color)}
+                                onClick={() =>
+                                  handleColorChange(focusedListId, color)
+                                }
                               />
                             ))}
                           </div>
                         </div>
                       )}
                     </div>
+                    <CircleX
+                      onClick={() => setIsEditing(false)}
+                      className="text-secondary cursor-pointer"
+                    />
                   </>
                 ) : (
                   <Pencil
                     className="text-primary cursor-pointer"
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => {
+                      setIsEditing(true);
+                      setEditedTitle(
+                        lists.find((list) => list.id === focusedListId).title
+                      );
+                    }}
                   />
                 )}
               </div>
             </div>
             <textarea
-              className="w-full h-32 p-2 rounded resize-none focus:outline-none  bg-white/50 focus:bg-white/80 focus:shadow-inner"
-              // style={{ 
-              //   backgroundColor: `${lists.find((list) => list.id === focusedListId)?.color}` || '#FFE4B580'
-              // }}
-              value={lists.find((list) => list.id === focusedListId)?.items[0] || ""}
-              onChange={(e) => handleTextareaChange(focusedListId, e.target.value)}
+              className="w-full h-32 p-2 rounded resize-none focus:outline-none bg-white/50 focus:bg-white/80 focus:shadow-inner"
+              value={
+                lists.find((list) => list.id === focusedListId)?.items[0] || ""
+              }
+              onChange={(e) =>
+                handleTextareaChange(focusedListId, e.target.value)
+              }
             />
             <Button
               onClick={() => setFocusedListId(null)}

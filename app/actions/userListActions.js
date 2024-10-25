@@ -121,3 +121,23 @@ export async function updateListColor(listId, color) {
     return { success: false, error: error.message };
   }
 }
+
+export async function updateListTitle(listId, title) {
+  try {
+    const user = await checkUser()
+    const userId = user ? user.clerkUserId : null
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' }
+    }
+
+    const updatedList = await db.list.update({
+      where: { id: listId },
+      data: { title },
+    })
+
+    return { success: true, data: updatedList }
+  } catch (error) {
+    console.error('Error updating list title:', error)
+    return { success: false, error: error.message }
+  }
+}
