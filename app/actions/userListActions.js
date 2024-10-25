@@ -65,7 +65,8 @@ export async function fetchUserLists() {
       select: {
         id: true,
         title: true,
-        items: true // Ensure items are included
+        items: true,
+        color: true // Ensure items are included
       }
     })
 
@@ -104,6 +105,19 @@ export async function updateListItems(listId, items) {
     return { success: true, data: updatedList };
   } catch (error) {
     console.error('Error updating list items:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateListColor(listId, color) {
+  try {
+    const updatedList = await db.list.update({
+      where: { id: listId },
+      data: { color },
+    });
+    return { success: true, data: updatedList };
+  } catch (error) {
+    console.error('Error updating list color:', error);
     return { success: false, error: error.message };
   }
 }
