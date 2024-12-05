@@ -142,34 +142,42 @@ export async function addMultipleStudentsToClass({ classId, names }) {
 
 export async function deleteClass(classId) {
   try {
-    const user = await checkUser();
-    const userId = user ? user.clerkUserId : null;
-    if (!userId) {
-      return { success: false, error: "User not authenticated" };
+    const user = await checkUser()
+    if (!user) {
+      return { success: false, error: "User not authenticated" }
     }
 
+    // First delete all groups associated with the class
+    await db.group.deleteMany({
+      where: {
+        classId: classId
+      }
+    })
+
+    // Disconnect all students from the class instead of deleting them
     await db.class.update({
       where: {
         id: classId,
-        ownerId: userId,
+        ownerId: user.clerkUserId
       },
       data: {
         students: {
-          set: [],
-        },
-      },
-    });
+          set: [] // This disconnects all students without deleting them
+        }
+      }
+    })
 
-    await db.class.delete({
+    // Finally delete the class itself
+    const deletedClass = await db.class.delete({
       where: {
         id: classId,
-        ownerId: userId,
-      },
-    });
+        ownerId: user.clerkUserId
+      }
+    })
 
-    return { success: true };
+    return { success: true, data: deletedClass }
   } catch (error) {
-    console.error("Error deleting class:", error);
-    return { success: false, error: "Failed to delete class" };
+    console.error("Error deleting class:", error)
+    return { success: false, error: error.message }
   }
 }
