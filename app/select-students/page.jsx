@@ -5,14 +5,15 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 function SelectStudents() {
   const [classes, setClasses] = useState([])
   const [selectedClass, setSelectedClass] = useState(null)
   const [students, setStudents] = useState(null)
-  const [selectedStudents, setSelectedStudents] = useState([])
+  const [selectedStudent, setSelectedStudent] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [numberOfStudents, setNumberOfStudents] = useState('1')
+  const [removedStudents, setRemovedStudents] = useState(new Set())
 
   const fetchClasses = async () => {
     setIsLoading(true)
@@ -37,7 +38,8 @@ function SelectStudents() {
   const handleSelectClass = (cls) => {
     setSelectedClass(cls)
     setStudents(cls.students)
-    setSelectedStudents([])
+    setSelectedStudent(null)
+    setRemovedStudents(new Set())
   }
 
   const handleSelectRandomStudents = () => {
@@ -45,14 +47,40 @@ function SelectStudents() {
 
     setIsLoading(true)
     try {
-      const numStudents = Math.min(parseInt(numberOfStudents, 10) || 1, students.length)
-      const shuffled = [...students].sort(() => 0.5 - Math.random())
-      setSelectedStudents(shuffled.slice(0, numStudents))
+      const availableStudents = students.filter(student => !removedStudents.has(student.id))
+      if (availableStudents.length === 0) {
+        setIsLoading(false)
+        return
+      }
+      
+      const shuffled = [...availableStudents].sort(() => 0.5 - Math.random())
+      setSelectedStudent(shuffled[0])
     } catch (error) {
-      console.error('Error selecting random students:', error)
+      console.error('Error selecting random student:', error)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleRemoveStudent = () => {
+    setRemovedStudents(prev => new Set([...prev, selectedStudent.id]))
+    setSelectedStudent(null)
+  }
+
+  const handleKeepStudent = () => {
+    setSelectedStudent(null)
+  }
+
+  const handleResetPool = () => {
+    setRemovedStudents(new Set())
+  }
+
+  const handleAddBackToPool = (studentId) => {
+    setRemovedStudents(prev => {
+      const newSet = new Set(prev)
+      newSet.delete(studentId)
+      return newSet
+    })
   }
 
   return (
@@ -83,44 +111,104 @@ function SelectStudents() {
       </Card>
 
       {selectedClass && (
-        <Card className="shadow-lg">
-          <CardContent className="space-y-4 flex flex-col items-center">
-            <div className="flex flex-col items-center space-y-4 w-full justify-center mt-5">
-              <Input
-                type="text"
-                value={numberOfStudents}
-                onChange={(e) => setNumberOfStudents(e.target.value)}
-                placeholder="Number of students"
-                className="w-40 text-center"
-              />
-              <Button
-                onClick={handleSelectRandomStudents}
-                disabled={isLoading || !students || students.length === 0}
-                className="py-3 text-lg rounded hover:bg-primary-700 bg-primary"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Selecting...
-                  </>
-                ) : (
-                  'Select Random Students'
-                )}
-              </Button>
-            </div>
-            {selectedStudents.length > 0 && (
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold text-gray-700 mb-2">Selected Students:</h2>
-                {selectedStudents.map((student, index) => (
-                  <p key={student.id} className="text-3xl font-bold text-secondary mb-2">
-                    {student.name}
-                  </p>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3">
+            <Card className="shadow-lg">
+              <CardHeader className="py-3">
+                <CardTitle className="text-xl font-semibold text-gray-700">Student List</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  {students?.map((student) => (
+                    <div
+                      key={student.id}
+                      className={`p-2 rounded-lg flex justify-between items-center ${
+                        removedStudents.has(student.id)
+                          ? 'bg-gray-100 text-gray-400'
+                          : 'bg-primary/10 text-primary'
+                      }`}
+                    >
+                      <span>{student.name}</span>
+                      {removedStudents.has(student.id) && (
+                        <Button
+                          onClick={() => handleAddBackToPool(student.id)}
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 hover:bg-primary/10"
+                        >
+                          Add Back
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-1">
+            <Card className="shadow-lg">
+              <CardHeader className="py-3">
+                <CardTitle className="text-xl font-semibold text-gray-700 text-center">Controls</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center space-y-3">
+                <Button
+                  onClick={handleSelectRandomStudents}
+                  disabled={isLoading || !students || students.length === 0}
+                  className="w-full py-3 text-lg rounded hover:bg-primary-700 bg-primary"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Selecting...
+                    </>
+                  ) : (
+                    'Select Random Student'
+                  )}
+                </Button>
+                <Button
+                  onClick={handleResetPool}
+                  variant="outline"
+                  className="w-full"
+                  disabled={removedStudents.size === 0}
+                >
+                  Reset Pool
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )}
+
+      <Dialog open={!!selectedStudent} onOpenChange={() => setSelectedStudent(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center text-primary">
+              Selected Student
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-3xl font-bold text-secondary">
+              {selectedStudent?.name}
+            </p>
+          </div>
+          <DialogFooter className="flex justify-center space-x-4">
+            <Button
+              variant="outline"
+              onClick={handleRemoveStudent}
+              className="bg-gray-100 hover:bg-gray-200"
+            >
+              Remove from Pool
+            </Button>
+            <Button
+              onClick={handleKeepStudent}
+              className="bg-primary hover:bg-primary-700"
+            >
+              Keep in Pool
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
