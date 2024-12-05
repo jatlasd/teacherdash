@@ -65,5 +65,5 @@ model List {
   userId String
   user   User     @relation(fields: [userId], references: [clerkUserId])
   items  String[]
-  color String @default("#000")
+  color  String   @default("#FFF4CC")
 }
