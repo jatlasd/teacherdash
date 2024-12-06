@@ -8,13 +8,15 @@ import { useToast } from "@/hooks/use-toast";
 
 const MyClasses = () => {
   const [classes, setClasses] = useState([]);
-  const [update, setUpdate] = useState(false)
+  const [update, setUpdate] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const updateStudents = () => {setUpdate(!update)}
+  const updateStudents = () => setUpdate(!update);
 
   const fetchClasses = useCallback(async () => {
     try {
+      setIsLoading(true);
       const response = await fetch("/api/classes");
       if (!response.ok) {
         throw new Error("Failed to fetch classes");
@@ -23,6 +25,8 @@ const MyClasses = () => {
       setClasses(data);
     } catch (error) {
       console.error("Error fetching classes:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -108,17 +112,30 @@ const MyClasses = () => {
         <AddClass onClassAdded={fetchClasses} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {classes.map((cls) => (
-          <ClassItem
-            key={cls.id}
-            cls={cls}
-            onAddStudent={handleAddStudent}
-            onEditStudent={handleEditStudent}
-            onRemoveStudent={handleRemoveStudent}
-            onDeleteClass={handleDeleteClass}
-            updateStudents={updateStudents}
-          />
-        ))}
+        {isLoading ? (
+          Array(6).fill(0).map((_, index) => (
+            <div key={index} className="border rounded-lg p-6 space-y-4">
+              <div className="h-6 bg-gray-200 rounded animate-pulse w-3/4" />
+              <div className="space-y-2">
+                <div className="h-6 bg-gray-200 rounded animate-pulse w-1/6" />
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4" />
+              </div>
+
+            </div>
+          ))
+        ) : (
+          classes.map((cls) => (
+            <ClassItem
+              key={cls.id}
+              cls={cls}
+              onAddStudent={handleAddStudent}
+              onEditStudent={handleEditStudent}
+              onRemoveStudent={handleRemoveStudent}
+              onDeleteClass={handleDeleteClass}
+              updateStudents={updateStudents}
+            />
+          ))
+        )}
       </div>
     </div>
   );
