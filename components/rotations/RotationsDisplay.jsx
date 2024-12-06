@@ -7,7 +7,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { X, Play, Pause, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import { Separator } from '../ui/separator'
-import { generateWarning } from '@/app/actions/openaiActions'
+import { generateWarning } from '@/app/actions/openaiActions';
+import { Link } from 'next/link'
 
 function RotationsDisplay ({ centers }) {
   const [classes, setClasses] = useState([])
@@ -357,7 +358,17 @@ function RotationsDisplay ({ centers }) {
         ))}
       </div>
       <Separator/>
-        {groups.length > 0 && (
+        {selectedClass && groups.length === 0 ? (
+          <div className="flex flex-col items-center justify-center min-h-[100px] bg-white rounded-xl shadow-sm border border-primary/20">
+            <h2 className="text-3xl font-bold text-primary mb-3">Uh Oh!</h2>
+            <p className="text-zinc-500 text-lg">This class doesn't have any student groups yet.</p>
+            <div className='flex mb-4'>
+              <span className='text-zinc-500'>Visit&nbsp;</span>
+              <a href="/my-classes" className='text-blue-500 hover:text-blue-700 underline'>your classes</a>
+              <span className='text-zinc-500'>&nbsp;to create groups and start using rotations</span>
+            </div>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {groups.map((group) => (
               <Card key={group.id}>
