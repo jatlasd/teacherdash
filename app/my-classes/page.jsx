@@ -138,7 +138,7 @@ const MyClasses = () => {
         )}
       </div>
     </div>
-  );
+  );``
 };
 
 export default MyClasses;

@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '../ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { X, Play, Pause, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Play, Pause, RotateCcw, ChevronDown, ChevronUp, Plus } from 'lucide-react'
 import { Separator } from '../ui/separator'
 import { generateWarning } from '@/app/actions/openaiActions';
 import { Link } from 'next/link'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 
 function RotationsDisplay ({ centers }) {
   const [classes, setClasses] = useState([])
@@ -29,6 +30,13 @@ function RotationsDisplay ({ centers }) {
   const [editingCenterId, setEditingCenterId] = useState(null)
   const [isDetailsAdded, setIsDetailsAdded] = useState({})
   const detailInputRefs = useRef({})
+  const [isCreateTempGroupDialogOpen, setIsCreateTempGroupDialogOpen] = useState(false)
+  const [newTempGroupName, setNewTempGroupName] = useState('')
+  const [tempGroupStudents, setTempGroupStudents] = useState([])
+  const [availableStudents, setAvailableStudents] = useState([])
+  const [editingTempGroup, setEditingTempGroup] = useState(null)
+  const [isEditTempGroupDialogOpen, setIsEditTempGroupDialogOpen] = useState(false)
+  const [editingTempGroupStudents, setEditingTempGroupStudents] = useState([])
 
   useEffect(() => {
     fetchClasses()
@@ -83,9 +91,21 @@ function RotationsDisplay ({ centers }) {
     setCenterAssignments(initialAssignments)
   }
 
+  const fetchStudents = async (id) => {
+    try {
+      const response = await fetch(`/api/classes/${id}/students`)
+      if (!response.ok) throw new Error('Failed to fetch students')
+      const data = await response.json()
+      setAvailableStudents(data)
+    } catch (error) {
+      console.error('Error fetching students:', error)
+    }
+  }
+
   const handleClassSelect = classId => {
     setSelectedClass(classId)
     fetchGroups(classId)
+    fetchStudents(classId)
   }
 
   const handleDragStart = (e, group) => {
@@ -209,6 +229,82 @@ function RotationsDisplay ({ centers }) {
     setEditingCenterId(null)
   }
 
+  const handleCreateTempGroup = (e) => {
+    e.preventDefault()
+    if (!newTempGroupName.trim()) return
+
+    const newGroup = {
+      id: `temp-${Date.now()}`,
+      name: newTempGroupName,
+      students: tempGroupStudents,
+      isTemporary: true
+    }
+
+    setGroups(prev => [...prev, newGroup])
+    setUnassignedGroups(prev => [...prev, newGroup])
+    setNewTempGroupName('')
+    setTempGroupStudents([])
+    setIsCreateTempGroupDialogOpen(false)
+  }
+
+  const handleStudentToggle = (student) => {
+    setTempGroupStudents(prev => {
+      const isSelected = prev.some(s => s.id === student.id)
+      if (isSelected) {
+        return prev.filter(s => s.id !== student.id)
+      } else {
+        return [...prev, student]
+      }
+    })
+  }
+
+  const isStudentInTempGroup = (studentId) => {
+    return groups
+      .filter(group => group.isTemporary)
+      .some(group => group.students.some(student => student.id === studentId))
+  }
+
+  const handleEditTempGroup = (group) => {
+    setEditingTempGroup(group)
+    setEditingTempGroupStudents(group.students)
+    setIsEditTempGroupDialogOpen(true)
+  }
+
+  const handleSaveTempGroupEdit = () => {
+    setGroups(prev => prev.map(group => 
+      group.id === editingTempGroup.id 
+        ? { ...group, students: editingTempGroupStudents }
+        : group
+    ))
+    
+    setCenterAssignments(prev => {
+      const newAssignments = { ...prev }
+      Object.keys(newAssignments).forEach(centerId => {
+        newAssignments[centerId] = newAssignments[centerId].map(group =>
+          group.id === editingTempGroup.id
+            ? { ...group, students: editingTempGroupStudents }
+            : group
+        )
+      })
+      return newAssignments
+    })
+    
+    setIsEditTempGroupDialogOpen(false)
+    setEditingTempGroup(null)
+    setEditingTempGroupStudents([])
+  }
+
+  const handleEditingStudentToggle = (student) => {
+    setEditingTempGroupStudents(prev => {
+      const isSelected = prev.some(s => s.id === student.id)
+      if (isSelected) {
+        return prev.filter(s => s.id !== student.id)
+      } else {
+        return [...prev, student]
+      }
+    })
+  }
+
   return (
     <div className="space-y-8">
       <div className="bg-gray-100 p-4 rounded-lg space-y-4">
@@ -272,6 +368,17 @@ function RotationsDisplay ({ centers }) {
                 Warning audio set for {warningTime} minutes remaining
               </div>
             )}
+            <div className="flex flex-col space-y-4">
+              <Button 
+                onClick={() => setIsCreateTempGroupDialogOpen(true)}
+                variant="outline"
+                className="w-full"
+                disabled={!selectedClass}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Temporary Group
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -373,13 +480,27 @@ function RotationsDisplay ({ centers }) {
             {groups.map((group) => (
               <Card key={group.id}>
                 <CardContent className="p-4">
-                  <h3 className="text-2xl font-semibold text-primary mb-2 text-center underline">{group.name}</h3>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex-1 text-center">
+                      <h3 className="text-2xl font-semibold text-primary underline">{group.name}</h3>
+                    </div>
+                    {group.isTemporary && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditTempGroup(group)}
+                        className="h-8 px-2 ml-2"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                  </div>
                   <ul className="space-y-1">
                     {group.students
                       .sort((a, b) => {
-                        const lastNameA = a.name.split(' ').pop();
-                        const lastNameB = b.name.split(' ').pop();
-                        return lastNameA.localeCompare(lastNameB);
+                        const lastNameA = a.name.split(' ').pop()
+                        const lastNameB = b.name.split(' ').pop()
+                        return lastNameA.localeCompare(lastNameB)
                       })
                       .map((student) => (
                         <li key={student.id} className="text-gray-600 text-lg">{student.name}</li>
@@ -390,6 +511,88 @@ function RotationsDisplay ({ centers }) {
             ))}
           </div>
         )}
+
+      <Dialog
+        open={isCreateTempGroupDialogOpen}
+        onOpenChange={setIsCreateTempGroupDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create Temporary Group</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateTempGroup}>
+            <div className="space-y-4">
+              <Input
+                value={newTempGroupName}
+                onChange={(e) => setNewTempGroupName(e.target.value)}
+                placeholder="Enter group name"
+              />
+              <div className="max-h-[200px] overflow-y-auto border rounded p-2">
+                {availableStudents.map(student => {
+                  const isInTempGroup = isStudentInTempGroup(student.id)
+                  return (
+                    <div key={student.id} className="flex items-center space-x-2 p-1">
+                      <input
+                        type="checkbox"
+                        id={`student-${student.id}`}
+                        checked={tempGroupStudents.some(s => s.id === student.id)}
+                        onChange={() => handleStudentToggle(student)}
+                        disabled={isInTempGroup && !tempGroupStudents.some(s => s.id === student.id)}
+                      />
+                      <label 
+                        htmlFor={`student-${student.id}`}
+                        className={isInTempGroup ? "text-gray-400" : ""}
+                      >
+                        {student.name}
+                      </label>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button type="submit">Create Group</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isEditTempGroupDialogOpen}
+        onOpenChange={setIsEditTempGroupDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit {editingTempGroup?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[200px] overflow-y-auto border rounded p-2">
+            {availableStudents.map(student => {
+              const isInOtherTempGroup = isStudentInTempGroup(student.id) && 
+                !editingTempGroup?.students.some(s => s.id === student.id)
+              return (
+                <div key={student.id} className="flex items-center space-x-2 p-1">
+                  <input
+                    type="checkbox"
+                    id={`edit-student-${student.id}`}
+                    checked={editingTempGroupStudents.some(s => s.id === student.id)}
+                    onChange={() => handleEditingStudentToggle(student)}
+                    disabled={isInOtherTempGroup}
+                  />
+                  <label 
+                    htmlFor={`edit-student-${student.id}`}
+                    className={isInOtherTempGroup ? "text-gray-400" : ""}
+                  >
+                    {student.name}
+                  </label>
+                </div>
+              )
+            })}
+          </div>
+          <DialogFooter className="mt-4">
+            <Button onClick={handleSaveTempGroupEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
