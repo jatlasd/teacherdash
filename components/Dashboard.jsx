@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Users, Brain, UserCheck, Calculator, Clock, RefreshCcw } from "lucide-react";
+import { Users, Brain, UserCheck, Calculator, Clock, RefreshCcw, NotebookPen } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import TodoList from "./todos/TodoList";
@@ -49,6 +49,13 @@ const appCards = [
     icon: <RefreshCcw className="h-8 w-8" />,
     description: "Manage and display group rotations",
     route: "/rotations",
+  },
+  {
+    id: "PLAAFP",
+    title: "PLAAFP",
+    icon: <NotebookPen className="h-8 w-8" />,
+    description: "Generate professional PLAAFP statements",
+    route: "/iep",
   },
 ];
 
