@@ -285,7 +285,15 @@ const IEP = () => {
             <CardTitle>Student Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {['name', 'grade', 'setting', 'subject', 'progress'].map(field => (
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input
+                value={studentInfo.name}
+                onChange={(e) => setStudentInfo(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter student name"
+              />
+            </div>
+            {['grade', 'setting', 'subject', 'progress'].map(field => (
               <SelectField
                 key={field}
                 label={field.charAt(0).toUpperCase() + field.slice(1)}
