@@ -12,23 +12,25 @@ import { ClipboardCopy, Copy } from "lucide-react"
 import CustomTooltip from "@/components/CustomTooltip"
 import { templates } from './templates'
 import { predefinedOptions } from './options'
+import { Switch } from "@/components/ui/switch"
 
-const CustomInput = ({ value, onChange, onSubmit, placeholder }) => (
+const CustomInput = ({ value, onChange, onSubmit, placeholder, color }) => (
   <div className="flex gap-2">
     <Input
       value={value || ''}
       onChange={onChange}
       placeholder={placeholder}
+      className={`border-2 ${color?.replace('text-', 'border-')}`}
     />
     <Button onClick={onSubmit}>Add</Button>
   </div>
 )
 
-const SelectField = ({ label, value, options = [], onChange, customValue, onCustomChange, onCustomSubmit, showCustomInput }) => (
+const SelectField = ({ label, value, options = [], onChange, customValue, onCustomChange, onCustomSubmit, showCustomInput, color }) => (
   <div className="space-y-2">
     <Label>{label}</Label>
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger>
+      <SelectTrigger className={`border-2 ${color?.replace('text-', 'border-')}`}>
         <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
       </SelectTrigger>
       <SelectContent>
@@ -44,15 +46,16 @@ const SelectField = ({ label, value, options = [], onChange, customValue, onCust
         onChange={onCustomChange}
         onSubmit={onCustomSubmit}
         placeholder={`Enter custom ${label.toLowerCase()}`}
+        color={color}
       />
     )}
   </div>
 )
 
-const MultiSelectField = ({ label, value, options, onChange, customValue, onCustomChange, onCustomSubmit, showCustomInput }) => (
+const MultiSelectField = ({ label, value, options, onChange, customValue, onCustomChange, onCustomSubmit, showCustomInput, color }) => (
   <div className="space-y-2">
     <Label>{label}</Label>
-    <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+    <ScrollArea className={`h-[200px] w-full rounded-md border-2 p-4 ${color?.replace('text-', 'border-')}`}>
       <div className="space-y-2">
         {options.map(option => (
           <div key={option} className="flex items-center space-x-2">
@@ -82,6 +85,7 @@ const MultiSelectField = ({ label, value, options, onChange, customValue, onCust
         onChange={(e) => onCustomChange(e.target.value)}
         onSubmit={onCustomSubmit}
         placeholder={`Add custom ${label.toLowerCase()}`}
+        color={color}
       />
     )}
   </div>
@@ -124,8 +128,23 @@ const TemplateButtons = ({ selectedTemplate, onSelect }) => {
   )
 }
 
-const GeneratedParagraph = ({ paragraph, onParagraphChange }) => {
+const fieldColors = {
+  progress: 'text-blue-500',
+  workStyle: 'text-green-500',
+  helpseeking: 'text-purple-500',
+  personality: 'text-orange-500',
+  distractibility: 'text-pink-500',
+  redirection: 'text-yellow-500',
+  focusBehavior: 'text-indigo-500',
+  strengths: 'text-teal-500',
+  assessments: 'text-red-500',
+  supports: 'text-cyan-500',
+  classPresence: 'text-emerald-500'
+}
+
+const GeneratedParagraph = ({ paragraph, onParagraphChange, showColors, setShowColors }) => {
   const plainText = paragraph.replace(/<[^>]*>/g, '')
+  const hasMissingValues = paragraph.includes('text-red-500')
   
   const handleTextChange = (e) => {
     const newText = e.target.value
@@ -139,22 +158,34 @@ const GeneratedParagraph = ({ paragraph, onParagraphChange }) => {
     navigator.clipboard.writeText(plainText)
   }
 
+  const displayText = showColors ? paragraph : paragraph.replace(/class="text-[^"]*-500"/g, 'class=""')
+
   return (
     <Card className="mt-8">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Generated Paragraph</CardTitle>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={handleCopy}
-          className="h-8 w-8 border group"
-        >
-          <Copy className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="colors" className="text-sm">Colors</Label>
+            <Switch
+              id="colors"
+              checked={showColors}
+              onCheckedChange={setShowColors}
+            />
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={handleCopy}
+            className="h-8 w-8 border group"
+          >
+            <Copy className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <p className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: paragraph }} />
+          <p className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: displayText }} />
           <div className="space-y-2">
             <Label>Edit Paragraph</Label>
             <textarea
@@ -164,12 +195,6 @@ const GeneratedParagraph = ({ paragraph, onParagraphChange }) => {
             />
           </div>
         </div>
-        <style jsx>{`
-          .missing {
-            color: #ef4444;
-            font-weight: bold;
-          }
-        `}</style>
       </CardContent>
     </Card>
   )
@@ -201,6 +226,7 @@ const IEP = () => {
   const [showCustomInputs, setShowCustomInputs] = useState({})
   const [selectedTemplate, setSelectedTemplate] = useState('')
   const [editedParagraph, setEditedParagraph] = useState('')
+  const [showColors, setShowColors] = useState(true)
 
   const handleChange = (value, field) => {
     if (value === "add_new") {
@@ -248,11 +274,21 @@ const IEP = () => {
     const p = getPronouns()
     const missing = (text) => `<span class="font-semibold text-red-500 underline bg-yellow-200 px-1">${text}</span>`
     
-    const getValue = (field, defaultText) => studentInfo[field] || missing(defaultText)
-    const getArrayValue = (field, defaultText) => 
-      studentInfo[field]?.length ? studentInfo[field].join(', ') : missing(defaultText)
+    const getValue = (field, defaultText) => {
+      const value = studentInfo[field]
+      if (!value) return missing(defaultText)
+      if (!fieldColors[field]) return value
+      return showColors ? `<span class="${fieldColors[field]}">${value}</span>` : value
+    }
+    
+    const getArrayValue = (field, defaultText) => {
+      const values = studentInfo[field]
+      if (!values?.length) return missing(defaultText)
+      if (!fieldColors[field]) return values.join(', ')
+      return showColors ? values.map(v => `<span class="${fieldColors[field]}">${v}</span>`).join(', ') : values.join(', ')
+    }
 
-    return `${getValue('name', 'Name')} is ${studentInfo.grade === "8th Grade" ? "an" : "a"} ${getValue('grade', 'Grade')} student participating in a ${getValue('setting', 'Setting')}. In ${getValue('subject', 'Subject')} class, ${getValue('name', 'Name')} is ${getValue('progress', 'Progress')}. ${getValue('name', 'Name')} ${studentInfo.motivated ? 'seems motivated to do well in the class' : 'seems unmotivated in class'} and ${studentInfo.participates ? 'does participate in class' : 'seldom participates in class discussions and activities'}. During independent work ${getValue('name', 'Name')} ${getValue('workStyle', 'Work Style')}, and ${getValue('helpseeking', 'Help-Seeking Behavior')}. ${getValue('name', 'Name')} ${getValue('personality', 'Personality')}, but ${getValue('distractibility', 'Distractibility')}. When redirected, ${p.subject} ${getValue('redirection', 'Redirection Behavior')}. ${getValue('name', 'Name')}'s motivation to do well is evident when ${p.subject} does not fully understand the skills being practiced. In these situations, ${getValue('name', 'Name')} ${getValue('focusBehavior', 'Focus Behavior')}. ${getValue('name', 'Name')}'s strengths include, but are not limited to: ${getArrayValue('strengths', 'Strengths')}. When completing most assessments, ${getValue('name', 'Name')} benefits from ${getArrayValue('assessments', 'Assessment Accommodations')}. Additional supports for this class include but are not limited to ${getArrayValue('supports', 'Supports')}. In addition, ${getValue('name', 'Name')} is ${getValue('classPresence', 'Class Presence')}.`
+    return `${getValue('name', 'Name')} is ${studentInfo.grade === "8th Grade" ? "an" : "a"} ${getValue('grade', 'Grade')} student in ${getValue('setting', 'Setting')}. In ${getValue('subject', 'Subject')} class, ${p.subject} is ${getValue('progress', 'Progress')}. ${studentInfo.motivated ? `While ${p.subject} demonstrates motivation to succeed` : `Although ${p.subject} shows limited motivation`}, ${studentInfo.participates ? `${p.subject} actively engages in class discussions and activities` : `${p.subject} tends to be quiet during class discussions and activities`}. During independent work, ${getValue('name', 'Name')} ${getValue('workStyle', 'Work Style')}. ${getValue('helpseeking', 'Help-Seeking Behavior')}. ${getValue('name', 'Name')} ${getValue('personality', 'Personality')}. ${getValue('distractibility', 'Distractibility')}, but ${getValue('redirection', 'Redirection Behavior')}. When ${p.subject} encounters challenging concepts, ${p.subject} ${getValue('focusBehavior', 'Focus Behavior')}. ${getValue('name', 'Name')} demonstrates several key strengths, including ${getArrayValue('strengths', 'Strengths')}. For assessments, ${getValue('name', 'Name')} benefits from ${getArrayValue('assessments', 'Assessment Accommodations')}. To support ${p.possessive} learning, ${p.subject} receives ${getArrayValue('supports', 'Supports')}. ${getValue('name', 'Name')} is ${getValue('classPresence', 'Class Presence')}.`
   }
 
   const getPronouns = () => {
@@ -304,6 +340,7 @@ const IEP = () => {
                 onCustomChange={(e) => handleCustomChange(field, e.target.value)}
                 onCustomSubmit={() => handleCustomSubmit(field)}
                 showCustomInput={showCustomInputs[field]}
+                color={fieldColors[field]}
               />
             ))}
             
@@ -336,6 +373,7 @@ const IEP = () => {
                 onCustomChange={(e) => handleCustomChange(field, e.target.value)}
                 onCustomSubmit={() => handleCustomSubmit(field)}
                 showCustomInput={showCustomInputs[field]}
+                color={fieldColors[field]}
               />
             ))}
           </CardContent>
@@ -357,6 +395,7 @@ const IEP = () => {
                 onCustomChange={(e) => handleCustomChange(field, e.target.value)}
                 onCustomSubmit={() => handleCustomSubmit(field)}
                 showCustomInput={showCustomInputs[field]}
+                color={fieldColors[field]}
               />
             ))}
             
@@ -377,6 +416,7 @@ const IEP = () => {
                 }}
                 onCustomSubmit={() => handleMultiSelectCustomSubmit(field)}
                 showCustomInput={showCustomInputs[field]}
+                color={fieldColors[field]}
               />
             ))}
             
@@ -389,6 +429,7 @@ const IEP = () => {
               onCustomChange={(e) => handleCustomChange('classPresence', e.target.value)}
               onCustomSubmit={() => handleCustomSubmit('classPresence')}
               showCustomInput={showCustomInputs.classPresence}
+              color={fieldColors.classPresence}
             />
             
             <div className="space-y-2">
@@ -411,6 +452,8 @@ const IEP = () => {
       <GeneratedParagraph 
         paragraph={editedParagraph || generateParagraph()} 
         onParagraphChange={handleParagraphChange}
+        showColors={showColors}
+        setShowColors={setShowColors}
       />
     </div>
   )
