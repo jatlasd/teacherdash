@@ -10,7 +10,7 @@ const RootLayout = async ({ children }) => {
     <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className="bg-white min-h-screen font-sans antialiased">
+      <body className="bg-whit min-h-screen font-sans antialiased">
         <Header />
         {children}
         <Toaster/>
